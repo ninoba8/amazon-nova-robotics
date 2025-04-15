@@ -16,34 +16,49 @@ export const DefaultAudioInputConfiguration = {
 };
 
 export const DefaultToolSchema = JSON.stringify({
-  type: "object",
-  properties: {},
-  required: [],
+  "type": "object",
+  "properties": {},
+  "required": []
 });
 
-export const WeatherToolSchema = JSON.stringify({
-  type: "object",
-  properties: {
-    latitude: {
-      type: "string",
-      description: "Geographical WGS84 latitude of the location.",
+
+export const DirectionToolSchema = JSON.stringify({
+  "type": "object",
+  "properties": {
+    "direction": {
+      "type": "string",
+      "description": "The direction to go, e.g. 'left', 'right', 'straight', 'back'."
     },
-    longitude: {
-      type: "string",
-      description: "Geographical WGS84 longitude of the location.",
-    },
+    "steps": {
+      "type": "integer",
+      "description": "The number of steps to take in the given direction."    
+    }
   },
-  required: ["latitude", "longitude"],
+  "required": ["direction", "steps"]
 });
 
-export const DefaultTextConfiguration = {
-  mediaType: "text/plain" as TextMediaType,
-};
+export const HandToolSchema = JSON.stringify({
+  "type": "object",
+  "properties": {
+    "hand": {
+      "type": "string",
+      "description": "The direction to go, e.g. 'left', 'right'."
+    },
+    "movement": {
+      "type": "string",
+      "description": "The movement to make, e.g. 'up', 'down', 'wave'."    
+    }
+  },
+  "required": ["hand", "movement"]
+});
 
-export const DefaultSystemPrompt =
-  "You are a friend. The user and you will engage in a spoken " +
+
+
+export const DefaultTextConfiguration = { mediaType: "text/plain" as TextMediaType };
+
+export const DefaultSystemPrompt = "You are a robot. The user and you will engage in a spoken " +
   "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
-  "generally two or three sentences for chatty scenarios.";
+  "generally two or three sentences for chatty scenarios. Use tools to handle physical tasks that require";
 
 export const DefaultAudioOutputConfiguration = {
   ...DefaultAudioInputConfiguration,

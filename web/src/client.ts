@@ -4,8 +4,6 @@ import {
   InvokeModelWithBidirectionalStreamCommand,
   InvokeModelWithBidirectionalStreamInput,
 } from "@aws-sdk/client-bedrock-runtime";
-import axios from "axios";
-import https from "https";
 import {
   NodeHttp2Handler,
   NodeHttp2HandlerOptions,
@@ -22,8 +20,9 @@ import {
   DefaultAudioOutputConfiguration,
   DefaultSystemPrompt,
   DefaultTextConfiguration,
-  DefaultToolSchema,
-  WeatherToolSchema,
+
+  DirectionToolSchema,
+  HandToolSchema,
 } from "./consts";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
@@ -197,8 +196,8 @@ export class NovaSonicBidirectionalStreamClient {
 
     this.inferenceConfig = config.inferenceConfig ?? {
       maxTokens: 1024,
-      topP: 0.9,
-      temperature: 0.7,
+      topP: 0.5,
+      temperature: 0.3,
     };
   }
 
@@ -256,108 +255,45 @@ export class NovaSonicBidirectionalStreamClient {
 
   private async processToolUse(
     toolName: string,
-    toolUseContent: object
+    toolUseContent: any
   ): Promise<Object> {
     const tool = toolName.toLowerCase();
 
     switch (tool) {
-      case "getdateandtimetool":
-        const date = new Date().toLocaleString("en-US", {
-          timeZone: "America/Los_Angeles",
-        });
-        const pstDate = new Date(date);
-        return {
-          date: pstDate.toISOString().split("T")[0],
-          year: pstDate.getFullYear(),
-          month: pstDate.getMonth() + 1,
-          day: pstDate.getDate(),
-          dayOfWeek: pstDate
-            .toLocaleString("en-US", { weekday: "long" })
-            .toUpperCase(),
-          timezone: "PST",
-          formattedTime: pstDate.toLocaleTimeString("en-US", {
-            hour12: true,
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-      case "getweathertool":
-        console.log(`weather tool`);
-        const parsedContent = await this.parseToolUseContentForWeather(
-          toolUseContent
-        );
-        console.log("parsed content");
-        if (!parsedContent) {
-          throw new Error("parsedContent is undefined");
+      case "directiontool":
+        if (toolUseContent && typeof toolUseContent.content === "string") {
+          // Parse the JSON string into an object
+          console.log(toolUseContent.content);
+          const parsedContent = JSON.parse(toolUseContent.content);
+          console.log(`parsedContent ${parsedContent}`);
+          // Return the parsed content
+          const direction = toolUseContent.direction;
+          const steps = toolUseContent.steps;
+          return {
+            direction: `moved ${direction} for ${steps} steps.`,
+          };
         }
-        return this.fetchWeatherData(
-          parsedContent?.latitude,
-          parsedContent?.longitude
-        );
+        throw new Error("parsedContent is undefined");
+      case "handtool":
+        if (toolUseContent && typeof toolUseContent.content === "string") {
+          // Parse the JSON string into an object
+          const parsedContent = JSON.parse(toolUseContent.content);
+          console.log(`parsedContent ${parsedContent}`);
+          // Return the parsed content
+          const hand = toolUseContent.hand;
+          const movement = toolUseContent.movement;
+          return {
+            hand: `moved ${hand} hand to ${movement}.`,
+          };
+        }
+        throw new Error("parsedContent is undefined");     
       default:
         console.log(`Tool ${tool} not supported`);
         throw new Error(`Tool ${tool} not supported`);
     }
   }
 
-  private async parseToolUseContentForWeather(
-    toolUseContent: any
-  ): Promise<{ latitude: number; longitude: number } | null> {
-    try {
-      // Check if the content field exists and is a string
-      if (toolUseContent && typeof toolUseContent.content === "string") {
-        // Parse the JSON string into an object
-        const parsedContent = JSON.parse(toolUseContent.content);
-        console.log(`parsedContent ${parsedContent}`);
-        // Return the parsed content
-        return {
-          latitude: parsedContent.latitude,
-          longitude: parsedContent.longitude,
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Failed to parse tool use content:", error);
-      return null;
-    }
-  }
-
-  private async fetchWeatherData(
-    latitude: number,
-    longitude: number
-  ): Promise<Record<string, any>> {
-    const ipv4Agent = new https.Agent({ family: 4 });
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
-
-    try {
-      const response = await axios.get(url, {
-        httpsAgent: ipv4Agent,
-        timeout: 5000,
-        headers: {
-          "User-Agent": "MyApp/1.0",
-          Accept: "application/json",
-        },
-      });
-      const weatherData = response.data;
-      console.log("weatherData:", weatherData);
-
-      return {
-        weather_data: weatherData,
-      };
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(`Error fetching weather data: ${error.message}`, error);
-      } else {
-        console.error(
-          `Unexpected error: ${
-            error instanceof Error ? error.message : String(error)
-          } `,
-          error
-        );
-      }
-      throw error;
-    }
-  }
+ 
 
   // Stream audio for a specific session
   public async initiateSession(sessionId: string): Promise<void> {
@@ -756,24 +692,24 @@ export class NovaSonicBidirectionalStreamClient {
             tools: [
               {
                 toolSpec: {
-                  name: "getDateAndTimeTool",
+                  name: "directionTool",
                   description:
-                    "Get information about the current date and time.",
+                    "physically walk the direction with the number of steps to take.",
                   inputSchema: {
-                    json: DefaultToolSchema,
+                    json: DirectionToolSchema,
                   },
                 },
-              },
+              },              
               {
                 toolSpec: {
-                  name: "getWeatherTool",
+                  name: "handTool",
                   description:
-                    "Get the current weather for a given location, based on its WGS84 coordinates.",
+                    "physically move hand and movement",
                   inputSchema: {
-                    json: WeatherToolSchema,
+                    json: HandToolSchema,
                   },
                 },
-              },
+              }
             ],
           },
         },
