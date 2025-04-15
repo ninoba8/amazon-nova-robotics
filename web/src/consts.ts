@@ -16,29 +16,32 @@ export const DefaultAudioInputConfiguration = {
 };
 
 export const DefaultToolSchema = JSON.stringify({
-  "type": "object",
-  "properties": {},
-  "required": []
+  type: "object",
+  properties: {},
+  required: [],
 });
 
 export const WeatherToolSchema = JSON.stringify({
-  "type": "object",
-  "properties": {
-    "latitude": {
-      "type": "string",
-      "description": "Geographical WGS84 latitude of the location."
+  type: "object",
+  properties: {
+    latitude: {
+      type: "string",
+      description: "Geographical WGS84 latitude of the location.",
     },
-    "longitude": {
-      "type": "string",
-      "description": "Geographical WGS84 longitude of the location."
-    }
+    longitude: {
+      type: "string",
+      description: "Geographical WGS84 longitude of the location.",
+    },
   },
-  "required": ["latitude", "longitude"]
+  required: ["latitude", "longitude"],
 });
 
-export const DefaultTextConfiguration = { mediaType: "text/plain" as TextMediaType };
+export const DefaultTextConfiguration = {
+  mediaType: "text/plain" as TextMediaType,
+};
 
-export const DefaultSystemPrompt = "You are a friend. The user and you will engage in a spoken " +
+export const DefaultSystemPrompt =
+  "You are a friend. The user and you will engage in a spoken " +
   "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
   "generally two or three sentences for chatty scenarios.";
 
