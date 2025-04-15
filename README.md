@@ -32,3 +32,20 @@ Get AWS IoT Certifications
 ```
 aws s3 sync s3://<CdkStack.RobotDataBucketName> certificates/
 ```
+
+# Deployment
+
+## Use CDK bootstrap
+```
+cd cdk
+cdk bootstrap
+```
+
+## Deploy Stacks
+```
+cdk deploy --require-approval never
+```
+
+## Destory Stacks
+```
+cdk destroy --require-approval never

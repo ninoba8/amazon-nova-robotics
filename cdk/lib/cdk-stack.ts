@@ -16,22 +16,18 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
       autoDeleteObjects: true, // Automatically delete objects in the bucket during stack deletion
     });
 
-    // Create a robot with a certificate
-    const robot = new Robot(this, 'MyRobot', {
-      robotName: 'MyRobot',
-      saveFileBucket: robotDataBucket,
-    });
-    // Output the ARN of the robot's certificate
-    new cdk.CfnOutput(this, 'RobotCertArn', {
-      value: robot.thingWithCert.certId,
-      description: 'The ARN of the robot certificate',     
-    });
+    for (let i = 0; i < 5; i++) {
+      new Robot(this, `Robot${i}`, {
+        robotName: `Robot${i}`,
+        saveFileBucket: robotDataBucket,
+      });
+    }
+
     // output the bucket name
     new cdk.CfnOutput(this, 'RobotDataBucketName', {
       value: robotDataBucket.bucketName,
       description: 'The name of the S3 bucket for storing robot data',      
-    });
-   
+    });   
 
   }
 }
