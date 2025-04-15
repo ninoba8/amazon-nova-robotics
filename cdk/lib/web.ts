@@ -15,6 +15,13 @@ export class WebConstruct extends Construct {
       directory: path.join(__dirname, "../../web"),
     });
 
+    const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(this, 'AutoScalingConfiguration', {
+      autoScalingConfigurationName: 'RobotWebAutoScalingConfiguration',
+      maxConcurrency: 100,
+      maxSize: 3,
+      minSize: 1  
+    });
+
     const observabilityConfiguration = new apprunner.ObservabilityConfiguration(
       this,
       "ObservabilityConfiguration",
@@ -33,8 +40,11 @@ export class WebConstruct extends Construct {
         },
         asset: imageAsset,
       }),
+      cpu: apprunner.Cpu.QUARTER_VCPU,
+      memory: apprunner.Memory.HALF_GB,
       autoDeploymentsEnabled: true,
       observabilityConfiguration,
+      autoScalingConfiguration
     });
 
     service.addToRolePolicy(
