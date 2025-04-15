@@ -1,33 +1,26 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import * as s3 from "aws-cdk-lib/aws-s3";
-import { Robot } from './robot';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { RoboticConstruct } from "./robot";
+import { WebConstruct } from "./web";
 
 
 export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-    // Create an S3 bucket for storing robot data
-    const robotDataBucket = new s3.Bucket(this, 'RobotDataBucket', {
-      versioned: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // Automatically delete bucket during stack deletion
-      autoDeleteObjects: true, // Automatically delete objects in the bucket during stack deletion
+    const thingNames = ["robot_1", "robot_2", "robot_3", "robot_4", "robot_5"];
+    const roboticConstruct = new RoboticConstruct(this, "RoboticConstruct", {
+      thingNames: thingNames,
     });
+    const webConstruct  =new WebConstruct(this, "WebConstruct");
 
-    for (let i = 0; i < 5; i++) {
-      new Robot(this, `Robot${i}`, {
-        robotName: `Robot${i}`,
-        saveFileBucket: robotDataBucket,
-      });
-    }
-
+    new cdk.CfnOutput(this, "url", {
+      value: "https://" + webConstruct.serviceUrl,
+    });
     // output the bucket name
-    new cdk.CfnOutput(this, 'RobotDataBucketName', {
-      value: robotDataBucket.bucketName,
-      description: 'The name of the S3 bucket for storing robot data',      
-    });   
-
+    new cdk.CfnOutput(this, "RobotDataBucketName", {
+      value: roboticConstruct.bucket.bucketName,
+      description: "The name of the S3 bucket for storing robot data",
+    });
   }
 }

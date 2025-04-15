@@ -76,7 +76,7 @@ npm run build
 npm start
 ```
 ```
-docker build -t web-app . && docker run -p 3000:3000 -v ~/.aws:/.aws:ro web-app
+docker build -t web-app . && docker run -p 3000:3000 -v ~/.aws:/root/.aws:ro web-app
 ```
 
 2. Open your browser:

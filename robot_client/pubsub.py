@@ -51,7 +51,7 @@ def on_lifecycle_connection_failure(lifecycle_connection_failure: mqtt5.Lifecycl
 if __name__ == '__main__':
  
     # Input parameters
-    robot_name = "MyRobot"
+    robot_name = "robot_1"
     input_topic = f"{robot_name}/topic"
 
     input_cert = f"/workspaces/amazon-nova-robotic/certificates/{robot_name}/{robot_name}.cert.pem"
