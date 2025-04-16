@@ -2,8 +2,8 @@ import { AudioMediaType, AudioType, TextMediaType } from "./types";
 
 export const DefaultInferenceConfiguration = {
   maxTokens: 1024,
-  topP: 0.9,
-  temperature: 0.7,
+  topP: 0.3,
+  temperature: 0.2,
 };
 
 export const DefaultAudioInputConfiguration = {
@@ -15,7 +15,9 @@ export const DefaultAudioInputConfiguration = {
   channelCount: 1,
 };
 
-export const DefaultTextConfiguration = { mediaType: "text/plain" as TextMediaType };
+export const DefaultTextConfiguration = {
+  mediaType: "text/plain" as TextMediaType,
+};
 
 export const DefaultAudioOutputConfiguration = {
   ...DefaultAudioInputConfiguration,

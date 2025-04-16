@@ -1,4 +1,8 @@
+import { IoTPublisher } from "./iot";
+
 export class ToolProcessor {
+  private readonly iotPublisher = new IoTPublisher("us-east-1");
+
   public async processToolUse(
     toolName: string,
     toolUseContent: any
@@ -21,39 +25,17 @@ export class ToolProcessor {
   private processDirectionTool(content: any): any {
     // Example implementation for directionTool
     console.log("Processing directionTool with content:", content);
-    // if (toolUseContent && typeof toolUseContent.content === "string") {
-    //     // Parse the JSON string into an object
-    //     console.log(toolUseContent.content);
-    //     const parsedContent = JSON.parse(toolUseContent.content);
-    //     console.log(`parsedContent ${parsedContent}`);
-    //     // Return the parsed content
-    //     const direction = toolUseContent.direction;
-    //     const steps = toolUseContent.steps;
-    //     return {
-    //       direction: `moved ${direction} for ${steps} steps.`,
-    //     };
-    //   }
-    //   throw new Error("parsedContent is undefined");
-
+    this.iotPublisher
+      .publishToRobot("robot_1/topic", JSON.stringify(content))
+      .catch(console.error);
     return { success: true, message: "Direction processed successfully" };
   }
 
   private processHandTool(content: any): any {
-    // if (toolUseContent && typeof toolUseContent.content === "string") {
-    //     // Parse the JSON string into an object
-    //     const parsedContent = JSON.parse(toolUseContent.content);
-    //     console.log(`parsedContent ${parsedContent}`);
-    //     // Return the parsed content
-    //     const hand = toolUseContent.hand;
-    //     const movement = toolUseContent.movement;
-    //     return {
-    //       hand: `moved ${hand} hand to ${movement}.`,
-    //     };
-    //   }
-    //   throw new Error("parsedContent is undefined");
-
-    // Example implementation for handTool
     console.log("Processing handTool with content:", content);
+    this.iotPublisher
+      .publishToRobot("robot_1/topic", JSON.stringify(content))
+      .catch(console.error);
     return { success: true, message: "Hand movement processed successfully" };
   }
 }
@@ -61,7 +43,7 @@ export class ToolProcessor {
 export const DefaultSystemPrompt =
   "You are a robot. The user and you will engage in a spoken " +
   "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
-  "generally two or three sentences for chatty scenarios. Use tools to handle physical tasks that require";
+  "generally two or three sentences for chatty scenarios.";
 
 export const DefaultToolSchema = JSON.stringify({
   type: "object",
@@ -74,8 +56,8 @@ export const DirectionToolSchema = JSON.stringify({
   properties: {
     direction: {
       type: "string",
-      description:
-        "The direction to go, e.g. 'left', 'right', 'straight', 'back'.",
+      enum: ["left", "right", "straight", "back"],
+      description: "The direction to go.",
     },
     steps: {
       type: "integer",
@@ -90,11 +72,13 @@ export const HandToolSchema = JSON.stringify({
   properties: {
     hand: {
       type: "string",
-      description: "The direction to go, e.g. 'left', 'right'.",
+      enum: ["left", "right"],
+      description: "The hand to move.",
     },
     movement: {
       type: "string",
-      description: "The movement to make, e.g. 'up', 'down', 'wave'.",
+      enum: ["up", "down", "left", "right"],
+      description: "The movement to make.",
     },
   },
   required: ["hand", "movement"],
@@ -105,7 +89,7 @@ export const tools = [
     toolSpec: {
       name: "directionTool",
       description:
-        "physically walk the direction with the number of steps to take.",
+        "Allows the robot to physically walk in a specified direction for a given number of steps.",
       inputSchema: {
         json: DirectionToolSchema,
       },
@@ -114,7 +98,8 @@ export const tools = [
   {
     toolSpec: {
       name: "handTool",
-      description: "physically move hand and movement",
+      description:
+        "Enables the robot to move its hand in a specified direction.",
       inputSchema: {
         json: HandToolSchema,
       },
