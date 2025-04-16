@@ -1,4 +1,4 @@
-import { AudioType, AudioMediaType, TextMediaType } from "./types";
+import { AudioMediaType, AudioType, TextMediaType } from "./types";
 
 export const DefaultInferenceConfiguration = {
   maxTokens: 1024,
