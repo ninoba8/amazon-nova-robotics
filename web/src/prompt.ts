@@ -1,4 +1,5 @@
 import { IoTPublisher } from "./iot";
+import { Actions } from "./consts";
 
 export class ToolProcessor {
   private readonly iotPublisher = new IoTPublisher("us-east-1");
@@ -11,39 +12,26 @@ export class ToolProcessor {
     console.log(`Processing tool use: ${toolName}`);
     console.log(`Tool use content:`, toolUseContent);
 
-    // Example logic for processing different tools
-    switch (toolName) {
-      case "directionTool":
-        return this.processDirectionTool(toolUseContent);
-      case "handTool":
-        return this.processHandTool(toolUseContent);
-      default:
-        throw new Error(`Unknown tool: ${toolName}`);
+    if (!Object.keys(Actions).includes(toolName.toLocaleLowerCase())) {
+      throw new Error(`Invalid tool name: ${toolName}`);
     }
-  }
 
-  private processDirectionTool(content: any): any {
-    // Example implementation for directionTool
-    console.log("Processing directionTool with content:", content);
+    console.log("Processing directionTool with toolName:", toolName);
     this.iotPublisher
-      .publishToRobot("robot_1/topic", JSON.stringify(content))
+      .publishToRobot("robot_1/topic", JSON.stringify({ toolName: toolName }))
       .catch(console.error);
-    return { success: true, message: "Direction processed successfully" };
-  }
-
-  private processHandTool(content: any): any {
-    console.log("Processing handTool with content:", content);
-    this.iotPublisher
-      .publishToRobot("robot_1/topic", JSON.stringify(content))
-      .catch(console.error);
-    return { success: true, message: "Hand movement processed successfully" };
+    return {
+      success: true,
+      message: `Tool ${toolName} processed successfully.`,
+    };
   }
 }
 
-export const DefaultSystemPrompt =
-  "You are a robot. The user and you will engage in a spoken " +
-  "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
-  "generally two or three sentences for chatty scenarios.";
+export const DefaultSystemPrompt = `
+You are a robot assistant. 
+Your primary role is to assist the user by calling tools to perform actions or physical tasks. 
+execute the tool, and return the result to the user. 
+Keep your responses concise and focused on the task at hand.`;
 
 export const DefaultToolSchema = JSON.stringify({
   type: "object",
@@ -54,52 +42,18 @@ export const DefaultToolSchema = JSON.stringify({
 export const tools = [
   {
     toolSpec: {
-      name: "directionTool",
+      name: "stand",
       description:
-        "Allows the robot to physically walk in a specified direction for a given number of steps.",
-      inputSchema: {
-        json: JSON.stringify({
-          type: "object",
-          properties: {
-            direction: {
-              type: "string",
-              enum: ["left", "right", "straight", "back"],
-              description: "The direction to go.",
-            },
-            steps: {
-              type: "integer",
-              description:
-                "The number of steps to take in the given direction.",
-            },
-          },
-          required: ["direction", "steps"],
-        }),
-      },
+        "Command the robot to stand up and maintain a standing position.",
+      inputSchema: { json: DefaultToolSchema },
     },
   },
   {
     toolSpec: {
-      name: "handTool",
+      name: "go_forward",
       description:
-        "Enables the robot to move its hand in a specified direction.",
-      inputSchema: {
-        json: JSON.stringify({
-          type: "object",
-          properties: {
-            hand: {
-              type: "string",
-              enum: ["left", "right"],
-              description: "The hand to move.",
-            },
-            movement: {
-              type: "string",
-              enum: ["up", "down", "left", "right"],
-              description: "The movement to make.",
-            },
-          },
-          required: ["hand", "movement"],
-        }),
-      },
+        "Command the robot to move forward in the direction it is currently facing.",
+      inputSchema: { json: DefaultToolSchema },
     },
   },
 ];
