@@ -17,13 +17,15 @@ import { firstValueFrom } from "rxjs";
 import {
   DefaultAudioInputConfiguration,
   DefaultAudioOutputConfiguration,
-  DefaultSystemPrompt,
   DefaultTextConfiguration,
-  DirectionToolSchema,
-  HandToolSchema,
 } from "./consts";
+import {
+  DefaultSystemPrompt, DirectionToolSchema,
+  HandToolSchema
+} from "./prompt";
 import { StreamSession } from "./streamSession";
 import { InferenceConfig } from "./types";
+import { ToolProcessor, tools } from "./prompt";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
   requestHandlerConfig?:
@@ -57,6 +59,7 @@ export class NovaSonicBidirectionalStreamClient {
   private activeSessions: Map<string, SessionData> = new Map();
   private sessionLastActivity: Map<string, number> = new Map();
   private sessionCleanupInProgress = new Set<string>();
+  private toolProcessor: ToolProcessor;
 
   constructor(config: NovaSonicBidirectionalStreamClientConfig) {
     const nodeHttp2Handler = new NodeHttp2Handler({
@@ -83,6 +86,8 @@ export class NovaSonicBidirectionalStreamClient {
       topP: 0.5,
       temperature: 0.3,
     };
+
+    this.toolProcessor = new ToolProcessor();
   }
 
   public isSessionActive(sessionId: string): boolean {
@@ -136,48 +141,6 @@ export class NovaSonicBidirectionalStreamClient {
 
     return new StreamSession(sessionId, this);
   }
-
-  private async processToolUse(
-    toolName: string,
-    toolUseContent: any
-  ): Promise<Object> {
-    const tool = toolName.toLowerCase();
-
-    switch (tool) {
-      case "directiontool":
-        if (toolUseContent && typeof toolUseContent.content === "string") {
-          // Parse the JSON string into an object
-          console.log(toolUseContent.content);
-          const parsedContent = JSON.parse(toolUseContent.content);
-          console.log(`parsedContent ${parsedContent}`);
-          // Return the parsed content
-          const direction = toolUseContent.direction;
-          const steps = toolUseContent.steps;
-          return {
-            direction: `moved ${direction} for ${steps} steps.`,
-          };
-        }
-        throw new Error("parsedContent is undefined");
-      case "handtool":
-        if (toolUseContent && typeof toolUseContent.content === "string") {
-          // Parse the JSON string into an object
-          const parsedContent = JSON.parse(toolUseContent.content);
-          console.log(`parsedContent ${parsedContent}`);
-          // Return the parsed content
-          const hand = toolUseContent.hand;
-          const movement = toolUseContent.movement;
-          return {
-            hand: `moved ${hand} hand to ${movement}.`,
-          };
-        }
-        throw new Error("parsedContent is undefined");     
-      default:
-        console.log(`Tool ${tool} not supported`);
-        throw new Error(`Tool ${tool} not supported`);
-    }
-  }
-
- 
 
   // Stream audio for a specific session
   public async initiateSession(sessionId: string): Promise<void> {
@@ -445,7 +408,7 @@ export class NovaSonicBidirectionalStreamClient {
                 console.log("calling tooluse");
                 console.log("tool use content : ", session.toolUseContent);
                 // function calling
-                const toolResult = await this.processToolUse(
+                const toolResult = await this.toolProcessor.processToolUse(
                   session.toolName,
                   session.toolUseContent
                 );
@@ -573,28 +536,7 @@ export class NovaSonicBidirectionalStreamClient {
             mediaType: "application/json",
           },
           toolConfiguration: {
-            tools: [
-              {
-                toolSpec: {
-                  name: "directionTool",
-                  description:
-                    "physically walk the direction with the number of steps to take.",
-                  inputSchema: {
-                    json: DirectionToolSchema,
-                  },
-                },
-              },              
-              {
-                toolSpec: {
-                  name: "handTool",
-                  description:
-                    "physically move hand and movement",
-                  inputSchema: {
-                    json: HandToolSchema,
-                  },
-                },
-              }
-            ],
+            tools: tools,
           },
         },
       },
