@@ -19,10 +19,7 @@ import {
   DefaultAudioOutputConfiguration,
   DefaultTextConfiguration,
 } from "./consts";
-import {
-  DefaultSystemPrompt, DirectionToolSchema,
-  HandToolSchema
-} from "./prompt";
+import { DefaultSystemPrompt } from "./prompt";
 import { StreamSession } from "./streamSession";
 import { InferenceConfig } from "./types";
 import { ToolProcessor, tools } from "./prompt";

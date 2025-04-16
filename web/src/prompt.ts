@@ -51,39 +51,6 @@ export const DefaultToolSchema = JSON.stringify({
   required: [],
 });
 
-export const DirectionToolSchema = JSON.stringify({
-  type: "object",
-  properties: {
-    direction: {
-      type: "string",
-      enum: ["left", "right", "straight", "back"],
-      description: "The direction to go.",
-    },
-    steps: {
-      type: "integer",
-      description: "The number of steps to take in the given direction.",
-    },
-  },
-  required: ["direction", "steps"],
-});
-
-export const HandToolSchema = JSON.stringify({
-  type: "object",
-  properties: {
-    hand: {
-      type: "string",
-      enum: ["left", "right"],
-      description: "The hand to move.",
-    },
-    movement: {
-      type: "string",
-      enum: ["up", "down", "left", "right"],
-      description: "The movement to make.",
-    },
-  },
-  required: ["hand", "movement"],
-});
-
 export const tools = [
   {
     toolSpec: {
@@ -91,7 +58,22 @@ export const tools = [
       description:
         "Allows the robot to physically walk in a specified direction for a given number of steps.",
       inputSchema: {
-        json: DirectionToolSchema,
+        json: JSON.stringify({
+          type: "object",
+          properties: {
+            direction: {
+              type: "string",
+              enum: ["left", "right", "straight", "back"],
+              description: "The direction to go.",
+            },
+            steps: {
+              type: "integer",
+              description:
+                "The number of steps to take in the given direction.",
+            },
+          },
+          required: ["direction", "steps"],
+        }),
       },
     },
   },
@@ -101,7 +83,22 @@ export const tools = [
       description:
         "Enables the robot to move its hand in a specified direction.",
       inputSchema: {
-        json: HandToolSchema,
+        json: JSON.stringify({
+          type: "object",
+          properties: {
+            hand: {
+              type: "string",
+              enum: ["left", "right"],
+              description: "The hand to move.",
+            },
+            movement: {
+              type: "string",
+              enum: ["up", "down", "left", "right"],
+              description: "The movement to make.",
+            },
+          },
+          required: ["hand", "movement"],
+        }),
       },
     },
   },

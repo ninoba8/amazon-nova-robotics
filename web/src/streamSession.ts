@@ -1,5 +1,8 @@
 import { Buffer } from "node:buffer";
-import { DefaultAudioInputConfiguration, DefaultTextConfiguration } from "./consts";
+import {
+  DefaultAudioInputConfiguration,
+  DefaultTextConfiguration,
+} from "./consts";
 import { DefaultSystemPrompt } from "./prompt";
 import { NovaSonicBidirectionalStreamClient } from "./client";
 
