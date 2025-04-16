@@ -8,6 +8,7 @@ from concurrent.futures import Future
 import time
 import json
 import yaml
+from action_executor import ActionExecutor
 
 TIMEOUT = 100
 
@@ -17,6 +18,8 @@ received_all_event = threading.Event()
 future_stopped = Future()
 future_connection_success = Future()
 
+# Create an instance of ActionExecutor
+executor = ActionExecutor()
 
 # Callback when any publish is received
 def on_publish_received(publish_packet_data):
@@ -25,6 +28,18 @@ def on_publish_received(publish_packet_data):
     print("Received message from topic'{}':{}".format(publish_packet.topic, publish_packet.payload))
     global received_count
     received_count += 1
+
+    # Add action to queue based on the received payload
+    try:
+        payload = json.loads(publish_packet.payload)
+        action_name = payload.get("toolName")
+        if action_name:
+            executor.add_action_to_queue(action_name)
+        else:
+            print("No action specified in the payload")
+    except json.JSONDecodeError:
+        print("Invalid JSON payload received")
+
     if received_count == input_count:
         received_all_event.set()
 

@@ -1,2 +1,3 @@
 awsiotsdk
 pyyaml
+requests
