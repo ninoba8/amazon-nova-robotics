@@ -36,7 +36,7 @@ Default output format [None]: json
 Get AWS IoT Certifications
 
 ```
-aws s3 sync s3://cdkstack-roboticconstructroboticbucket18220c0e-2aptgz5wkoka robot_client/certificates/
+aws s3 sync s3://<CdkStack.RobotDataBucketName> robot_client/certificates/
 ```
 
 # Server side Deployment

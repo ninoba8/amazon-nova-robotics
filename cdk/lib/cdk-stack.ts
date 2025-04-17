@@ -3,16 +3,15 @@ import { Construct } from "constructs";
 import { RoboticConstruct } from "./robot";
 import { WebConstruct } from "./web";
 
-
 export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const thingNames = ["robot_1", "robot_2", "robot_3", "robot_4", "robot_5"];
+    const thingNames = Array.from({ length: 6 }, (_, i) => `robot_${i + 1}`);
     const roboticConstruct = new RoboticConstruct(this, "RoboticConstruct", {
       thingNames: thingNames,
     });
-    const webConstruct  =new WebConstruct(this, "WebConstruct");
+    const webConstruct = new WebConstruct(this, "WebConstruct");
 
     new cdk.CfnOutput(this, "url", {
       value: "https://" + webConstruct.serviceUrl,
