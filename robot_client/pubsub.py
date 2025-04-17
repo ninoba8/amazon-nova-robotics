@@ -71,11 +71,12 @@ if __name__ == '__main__':
         settings = yaml.safe_load(file)
 
     robot_name = settings["robot_name"]
-    input_topic = settings["input_topic"].format(robot_name=robot_name)
-    input_cert = settings["input_cert"].format(robot_name=robot_name)
-    input_key = settings["input_key"].format(robot_name=robot_name)
+    base_path = settings["base_path"]
+    input_topic = settings["input_topic"].format(robot_name=robot_name,base_path=base_path)
+    input_cert = settings["input_cert"].format(robot_name=robot_name,base_path=base_path)
+    input_key = settings["input_key"].format(robot_name=robot_name,base_path=base_path)
     input_endpoint = settings["input_endpoint"]
-    input_clientId = settings["input_clientId"].format(robot_name=robot_name)
+    input_clientId = settings["input_clientId"].format(robot_name=robot_name,base_path=base_path)
 
     input_message = "Hello World"
     input_count = 0

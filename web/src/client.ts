@@ -48,6 +48,7 @@ interface SessionData {
   isPromptStartSent: boolean;
   isAudioContentStartSent: boolean;
   audioContentId: string;
+  robot: string;
 }
 
 export class NovaSonicBidirectionalStreamClient {
@@ -132,6 +133,7 @@ export class NovaSonicBidirectionalStreamClient {
       isPromptStartSent: false,
       isAudioContentStartSent: false,
       audioContentId: randomUUID(),
+      robot: "robot_1",
     };
 
     this.activeSessions.set(sessionId, session);
@@ -544,12 +546,16 @@ export class NovaSonicBidirectionalStreamClient {
     session.isPromptStartSent = true;
   }
 
+  public setRobot(robot: string) {
+    this.toolProcessor.setRobot(robot);
+  }
   public setupSystemPromptEvent(
     sessionId: string,
     textConfig: typeof DefaultTextConfiguration = DefaultTextConfiguration,
     systemPromptContent: string = DefaultSystemPrompt
   ): void {
     console.log(`Setting up systemPrompt events for session ${sessionId}...`);
+    console.log(`Using system prompt content: ${systemPromptContent}`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
     // Text content start

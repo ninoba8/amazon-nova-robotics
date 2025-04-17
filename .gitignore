@@ -135,7 +135,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-certificates/**
+**/certificates/**
+robot_client/deploy_package.zip
 
 # Python specific
 __pycache__/

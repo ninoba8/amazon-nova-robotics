@@ -12,10 +12,24 @@
     <div id="app">
         <div id="status" class="disconnected">Disconnected</div>
         <div id="chat-container"></div>
+
         <div id="controls">
             <button id="start" class="button">Start Streaming</button>
             <button id="stop" class="button" disabled>Stop Streaming</button>
+            <div id="robot-selector">
+                <label for="robot-select">Select Robot:</label>
+                <select id="robot-select">
+                    <option value="robot_1">Robot 1</option>
+                    <option value="robot_2">Robot 2</option>
+                    <option value="robot_3">Robot 3</option>
+                    <option value="robot_4">Robot 4</option>
+                    <option value="robot_5">Robot 5</option>
+                    <option value="robot_6">Robot 6</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
         </div>
+ 
     </div>
     <script type="module" src="/src/main.js"></script>
 </body>

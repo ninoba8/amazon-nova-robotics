@@ -23,3 +23,4 @@ else
 fi
 
 echo "Virtual environment setup complete. To activate, run: source $VENV_DIR/bin/activate"
+echo "To run the remote control, run: python pubsub.py"
