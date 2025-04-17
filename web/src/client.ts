@@ -532,6 +532,9 @@ export class NovaSonicBidirectionalStreamClient {
           toolUseOutputConfiguration: {
             mediaType: "application/json",
           },
+          toolChoice: {
+            any: {},
+          },
           toolConfiguration: {
             tools: tools,
           },

@@ -2,8 +2,8 @@ import { AudioMediaType, AudioType, TextMediaType } from "./types";
 
 export const DefaultInferenceConfiguration = {
   maxTokens: 1024,
-  topP: 0.3,
-  temperature: 0.2,
+  topP: 1,
+  temperature: 1,
 };
 
 export const DefaultAudioInputConfiguration = {
