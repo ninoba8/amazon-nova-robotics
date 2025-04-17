@@ -7,6 +7,8 @@ import threading
 from concurrent.futures import Future
 import time
 import json
+import yaml
+from action_executor import ActionExecutor
 
 TIMEOUT = 100
 
@@ -16,6 +18,8 @@ received_all_event = threading.Event()
 future_stopped = Future()
 future_connection_success = Future()
 
+# Create an instance of ActionExecutor
+executor = ActionExecutor()
 
 # Callback when any publish is received
 def on_publish_received(publish_packet_data):
@@ -24,6 +28,18 @@ def on_publish_received(publish_packet_data):
     print("Received message from topic'{}':{}".format(publish_packet.topic, publish_packet.payload))
     global received_count
     received_count += 1
+
+    # Add action to queue based on the received payload
+    try:
+        payload = json.loads(publish_packet.payload)
+        action_name = payload.get("toolName")
+        if action_name:
+            executor.add_action_to_queue(action_name)
+        else:
+            print("No action specified in the payload")
+    except json.JSONDecodeError:
+        print("Invalid JSON payload received")
+
     if received_count == input_count:
         received_all_event.set()
 
@@ -50,14 +66,16 @@ def on_lifecycle_connection_failure(lifecycle_connection_failure: mqtt5.Lifecycl
 
 if __name__ == '__main__':
  
-    # Input parameters
-    robot_name = "robot_1"
-    input_topic = f"{robot_name}/topic"
+    # Load settings from settings.yaml
+    with open("settings.yaml", "r") as file:
+        settings = yaml.safe_load(file)
 
-    input_cert = f"/workspaces/amazon-nova-robotic/certificates/{robot_name}/{robot_name}.cert.pem"
-    input_key = f"/workspaces/amazon-nova-robotic/certificates/{robot_name}/{robot_name}.private.key" 
-    input_endpoint = "a1qlex7vqi1791-ats.iot.us-east-1.amazonaws.com"
-    input_clientId = f"arn:aws:iot:us-east-1:111964674713:thing/{robot_name}"
+    robot_name = settings["robot_name"]
+    input_topic = settings["input_topic"].format(robot_name=robot_name)
+    input_cert = settings["input_cert"].format(robot_name=robot_name)
+    input_key = settings["input_key"].format(robot_name=robot_name)
+    input_endpoint = settings["input_endpoint"]
+    input_clientId = settings["input_clientId"].format(robot_name=robot_name)
 
     input_message = "Hello World"
     input_count = 0

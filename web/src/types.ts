@@ -1,14 +1,13 @@
+export type ContentType = "AUDIO" | "TEXT" | "TOOL";
+export type AudioType = "SPEECH";
+export type AudioMediaType = "audio/lpcm";
+export type TextMediaType = "text/plain" | "application/json";
+
 export interface InferenceConfig {
   readonly maxTokens: number;
   readonly topP: number;
   readonly temperature: number;
 }
-
-export type ContentType = "AUDIO" | "TEXT" | "TOOL";
-export type AudioType = "SPEECH";
-export type AudioMediaType = "audio/lpcm"
-export type TextMediaType = "text/plain" | "application/json";
-
 
 export interface AudioConfiguration {
   readonly audioType: AudioType;
