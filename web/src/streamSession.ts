@@ -41,6 +41,10 @@ export class StreamSession {
     );
   }
 
+  public setupRobot(robot: string): void {
+    this.client.setRobot(robot);
+  }
+
   public async setupStartAudio(
     audioConfig: typeof DefaultAudioInputConfiguration = DefaultAudioInputConfiguration
   ): Promise<void> {

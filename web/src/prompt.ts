@@ -2,7 +2,16 @@ import { IoTPublisher } from "./iot";
 import { Actions } from "./consts";
 
 export class ToolProcessor {
-  private readonly iotPublisher = new IoTPublisher("us-east-1");
+  private robot: string;
+  private readonly iotPublisher: IoTPublisher;
+
+  constructor() {
+    this.robot = "robot_1";
+    this.iotPublisher = new IoTPublisher("us-east-1");
+  }
+  setRobot(robot: string) {
+    this.robot = robot;
+  }
 
   public async processToolUse(
     toolName: string,
@@ -17,9 +26,24 @@ export class ToolProcessor {
     }
 
     console.log("Processing directionTool with toolName:", toolName);
-    this.iotPublisher
-      .publishToRobot("robot_1/topic", JSON.stringify({ toolName: toolName }))
-      .catch(console.error);
+    if (this.robot === "all") {
+      Array.from({ length: 5 }, (_, i) => i + 1).map((i) => {
+        this.iotPublisher
+          .publishToRobot(
+            `robot_${i}/topic`,
+            JSON.stringify({ toolName: toolName })
+          )
+          .catch(console.error);
+      });
+    } else {
+      this.iotPublisher
+        .publishToRobot(
+          this.robot + `/topic`,
+          JSON.stringify({ toolName: toolName })
+        )
+        .catch(console.error);
+    }
+
     return {
       success: true,
       message: `Tool ${toolName} processed successfully.`,

@@ -9,6 +9,7 @@ const startButton = document.getElementById('start');
 const stopButton = document.getElementById('stop');
 const statusElement = document.getElementById('status');
 const chatContainer = document.getElementById('chat-container');
+const robotSelect = document.getElementById('robot-select');
 
 // Chat history management
 let chat = { history: [] };
@@ -42,6 +43,14 @@ let sessionInitialized = false;
 let SYSTEM_PROMPT = "You are a friend. The user and you will engage in a spoken " +
     "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
     "generally two or three sentences for chatty scenarios.";
+
+// Add event listener for robot selection
+let selectedRobot = 'robot_1'; // Default robot
+
+robotSelect.addEventListener('change', (event) => {
+    selectedRobot = event.target.value;
+    console.log(`Selected robot: ${selectedRobot}`);
+});
 
 // Initialize WebSocket audio
 async function initAudio() {
@@ -83,7 +92,8 @@ async function initializeSession() {
     try {
         // Send events in sequence
         socket.emit('promptStart');
-        socket.emit('systemPrompt', SYSTEM_PROMPT);
+        // socket.emit('systemPrompt', SYSTEM_PROMPT);
+        socket.emit('robot', robotSelect.value);
         socket.emit('audioStart');
 
         // Mark session as initialized

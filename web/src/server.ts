@@ -88,7 +88,7 @@ io.on("connection", (socket) => {
     });
 
     session.onEvent("audioOutput", (data) => {
-      console.log("Audio output received, sending to client");
+      // console.log("Audio output received, sending to client");
       socket.emit("audioOutput", data);
     });
 
@@ -161,6 +161,12 @@ io.on("connection", (socket) => {
           details: error instanceof Error ? error.message : String(error),
         });
       }
+    });
+
+    socket.on("robot", async (data) => {
+      console.log("robot received:", data);
+      session.setupRobot(data);
+      socket.emit("robot received", data);
     });
 
     socket.on("audioStart", async (data) => {
