@@ -65,7 +65,7 @@ class ActionExecutor:
             self.logger.info(f"Action run_action({p1}, {p2}) successful. Response: {response.json()}")
             return response.json()
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Error running action run_action({p1}, {p2}): {e}")
+            self.logger.error(f"Error running action run_action({p1}, {p2})")
             return None
 
     def _execute_action(self, action_item: Dict[str, Any]) -> None:
