@@ -152,8 +152,8 @@ io.on("connection", (socket) => {
 
     socket.on("systemPrompt", async (data) => {
       try {
-        console.log("System prompt received", data);
-        await session.setupSystemPrompt(undefined, data);
+        console.log("System prompt received");
+        await session.setupSystemPrompt(undefined, undefined);
       } catch (error) {
         console.error("Error processing system prompt:", error);
         socket.emit("error", {

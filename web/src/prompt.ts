@@ -27,7 +27,7 @@ export class ToolProcessor {
 
     console.log("Processing directionTool with toolName:", toolName);
     if (this.robot === "all") {
-      Array.from({ length: 5 }, (_, i) => i + 1).map((i) => {
+      Array.from({ length: 6 }, (_, i) => i + 1).map((i) => {
         this.iotPublisher
           .publishToRobot(
             `robot_${i}/topic`,
