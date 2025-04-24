@@ -2,6 +2,7 @@ from time import sleep
 from typing import Any, Dict
 from flask import Flask, request, jsonify, render_template
 import boto3
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 
@@ -59,8 +60,8 @@ def chat():
 
     for message in user_messages:
         if selected_robot == "all":
-            for i in range(1, 7):
-                topic = f"robot_{i}/topic"
+            def publish_to_robot(robot_id):
+                topic = f"robot_{robot_id}/topic"
                 try:
                     client.publish(
                         topic=topic,
@@ -68,9 +69,15 @@ def chat():
                         retain=False,
                         payload=bytes(f'{{ "toolName": "{message}" }}', 'utf-8')
                     )
+                    print(f"Published to {topic}: {message}")
                 except Exception as e:
                     print(f"Error publishing to {topic}: {e}")
-                    return jsonify({"response": f"Error publishing to {topic}: {e}"})
+                    # return jsonify({"response": f"Error publishing to {topic}: {e}"})
+
+            with ThreadPoolExecutor() as executor:
+                futures = list(executor.map(publish_to_robot, range(1, 7)))
+                for future in futures:
+                    pass  # Ensures all tasks are completed before proceeding
         else:
             topic = f"{selected_robot}/topic"
             try:
