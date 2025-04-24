@@ -97,6 +97,8 @@ class ActionExecutor:
 
     def _consumer(self) -> None:
         """Continuously consume actions from the queue and execute them."""
+        # Wait until the start of the next 5-second interval
+        time.sleep(5 - time.time() % 5)
         while True:
             try:
                 # Wait until the start of the next second
