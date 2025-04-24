@@ -37,12 +37,14 @@ actions: Dict[str, Dict[str, Any]] = {
     'stepping': {'sleep_time': 3, 'action': ['24', '2'], 'name': '踏步'}
 }
 
+idle_action ={'name': None, 'sleep_time': 0}
+
 class ActionExecutor:
     def __init__(self):
         """Initialize the ActionExecutor with a queue and a consumer thread."""
         self.logger = logging.getLogger(__name__)
         self.action_queue = queue.Queue()
-        self.current_action: Dict[str, Optional[Any]] = {'name': None, 'sleep_time': 0}
+        self.current_action: Dict[str, Any] = idle_action
         self.is_running = False
         self.queue_lock = threading.Lock()
         self.consumer_thread = threading.Thread(target=self._consumer, daemon=True)
@@ -63,7 +65,7 @@ class ActionExecutor:
             self.logger.info(f"Action run_action({p1}, {p2}) successful. Response: {response.json()}")
             return response.json()
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Error running action run_action({p1}, {p2}): {e}")
+            self.logger.error(f"Error running action run_action({p1}, {p2})")
             return None
 
     def _execute_action(self, action_item: Dict[str, Any]) -> None:
@@ -78,7 +80,7 @@ class ActionExecutor:
             self.logger.error(f"Error executing action {action_name}: {e}")
         finally:
             self._remove_action_by_id(action_item['id'])
-            self.current_action = {'name': None, 'sleep_time': 0}
+            self.current_action = idle_action
 
     def _remove_action_by_id(self, action_id: str) -> None:
         """Remove an action from the queue by its ID."""
@@ -98,6 +100,15 @@ class ActionExecutor:
         while True:
             try:
                 action_item = self.action_queue.get(timeout=1)
+                action_name = action_item['name']
+
+                if action_name == "stop":
+                    self.logger.error("Received stop command, stopping action execution.")
+                    self.clear_action_queue()
+                    self.current_action = idle_action
+                    self.is_running = False
+                    continue        
+
                 self.is_running = True
                 self._execute_action(action_item)
                 time.sleep(0.5)

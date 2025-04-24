@@ -27,7 +27,7 @@ export class ToolProcessor {
 
     console.log("Processing directionTool with toolName:", toolName);
     if (this.robot === "all") {
-      Array.from({ length: 5 }, (_, i) => i + 1).map((i) => {
+      Array.from({ length: 6 }, (_, i) => i + 1).map((i) => {
         this.iotPublisher
           .publishToRobot(
             `robot_${i}/topic`,
@@ -84,7 +84,9 @@ Available tools:
 - stand_up_back: Command the robot to stand up from the back.
 - twist: Command the robot to twist its body.
 - stand_slow: Command the robot to stand up slowly.
-- stepping: Command the robot to perform stepping motions.`;
+- stepping: Command the robot to perform stepping motions.
+- stop: Command the robot to stop all actions.
+`;
 
 export const DefaultToolSchema = JSON.stringify({
   type: "object",
@@ -260,6 +262,13 @@ export const tools = [
     toolSpec: {
       name: "stepping",
       description: "Command the robot to perform stepping motions.",
+      inputSchema: { json: DefaultToolSchema },
+    },
+  },
+  {
+    toolSpec: {
+      name: "stop",
+      description: "Command the robot to stop all actions.",
       inputSchema: { json: DefaultToolSchema },
     },
   },

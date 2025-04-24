@@ -92,7 +92,7 @@ async function initializeSession() {
     try {
         // Send events in sequence
         socket.emit('promptStart');
-        // socket.emit('systemPrompt', SYSTEM_PROMPT);
+        socket.emit('systemPrompt');
         socket.emit('robot', robotSelect.value);
         socket.emit('audioStart');
 
