@@ -1,3 +1,4 @@
+import awsgi2
 from time import sleep
 from typing import Any, Dict
 from flask import Flask, request, jsonify, render_template
@@ -11,7 +12,7 @@ client = boto3.client('iot-data')
 
 input_endpoint = "a1qlex7vqi1791-ats.iot.us-east-1.amazonaws.com"
 
-@app.route('/')
+@app.route('/index')
 def home():
     return render_template('index.html')
 
@@ -52,7 +53,7 @@ def chat():
     if ',' in user_message:
         user_messages = [item.strip() for item in user_message.split(',')]
     else:
-        user_messages = [user_message]
+        user_messages = [user_message.strip()]
 
     for message in user_messages:
         if message not in actions:
@@ -93,6 +94,9 @@ def chat():
         sleep(0.1)
 
     return jsonify({"response": bot_response})
+
+def handler(event, context):
+    return awsgi2.response(app, event, context)
 
 if __name__ == '__main__':
     app.run(debug=True)

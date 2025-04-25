@@ -97,8 +97,13 @@ class ActionExecutor:
 
     def _consumer(self) -> None:
         """Continuously consume actions from the queue and execute them."""
+        # Wait until the start of the next 5-second interval
+        time.sleep(5 - time.time() % 5)
         while True:
             try:
+                # Wait until the start of the next second
+                time.sleep(1 - time.time() % 1)
+
                 action_item = self.action_queue.get(timeout=1)
                 action_name = action_item['name']
 
@@ -114,7 +119,7 @@ class ActionExecutor:
                 time.sleep(0.5)
             except queue.Empty:
                 self.is_running = False
-                time.sleep(1)
+                time.sleep(0.5)
 
     def add_action_to_queue(self, action_name: str) -> None:
         """Add a new action to the queue."""
