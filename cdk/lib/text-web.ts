@@ -39,6 +39,16 @@ export class TextControlWebConstruct extends Construct {
         resources: ["arn:aws:iot:*:*:topic/robot_*/topic"],
       })
     );
+    flaskLambda.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+        ],
+        resources: ["*"],
+      })
+    );
 
     const rootResource = restApi.root;
 
@@ -47,7 +57,6 @@ export class TextControlWebConstruct extends Construct {
       anyMethod: true,
     });
 
-    // Define the service URL
-    this.serviceUrl = restApi.domainName?.domainName ?? ""; // Replace with actual service URL
+    this.serviceUrl = restApi.url + "index";
   }
 }
