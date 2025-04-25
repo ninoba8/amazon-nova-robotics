@@ -73,11 +73,17 @@
             border-radius: 4px;
             background-color: #ffffff;
         }
+
+        #logo {
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 
 <body>
-    <h1 style="text-align: center; color: #333;">Chat with Robot</h1>
+    <img id="logo" src="https://www.hkiit.edu.hk/site/templates/images/HKIIT_Logo_bilingual-p-500.png" alt="HKIIT"
+        width="300">
+    <h1 style="text-align: center; color: #333;">雲端系統及數據中心管理高級文憑課程</h1>
     <div id="chat-container">
         <div id="messages"></div>
         <div id="input-container">
@@ -91,6 +97,7 @@
             <option value="robot_4">Robot 4</option>
             <option value="robot_5">Robot 5</option>
             <option value="robot_6">Robot 6</option>
+            <option value="robot_7">Robot 7</option>
             <option value="all">All</option>
         </select>
     </div>
@@ -102,7 +109,9 @@
             const message = userInput.value;
             const selectedRobot = robotSelect.value;
 
-            const response = await fetch('/chat', {
+            let endPoint = window.location.href.includes('prod') ? '/prod/chat' : '/chat';
+
+            const response = await fetch(endPoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -5,22 +5,26 @@ import * as apprunner from "@aws-cdk/aws-apprunner-alpha";
 import * as path from "path";
 import * as iam from "aws-cdk-lib/aws-iam";
 
-export class WebConstruct extends Construct {
+export class SpeechControlWebConstruct extends Construct {
   public readonly serviceUrl: string;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
     const imageAsset = new assets.DockerImageAsset(this, "ImageAssets", {
-      directory: path.join(__dirname, "../../web"),
+      directory: path.join(__dirname, "../../speech_control"),
     });
 
-    const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(this, 'AutoScalingConfiguration', {
-      autoScalingConfigurationName: 'RobotWebAutoScalingConfiguration',
-      maxConcurrency: 100,
-      maxSize: 3,
-      minSize: 1  
-    });
+    const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(
+      this,
+      "AutoScalingConfiguration",
+      {
+        autoScalingConfigurationName: "RobotWebAutoScalingConfiguration",
+        maxConcurrency: 100,
+        maxSize: 3,
+        minSize: 1,
+      }
+    );
 
     const observabilityConfiguration = new apprunner.ObservabilityConfiguration(
       this,
@@ -44,7 +48,7 @@ export class WebConstruct extends Construct {
       memory: apprunner.Memory.HALF_GB,
       autoDeploymentsEnabled: true,
       observabilityConfiguration,
-      autoScalingConfiguration
+      autoScalingConfiguration,
     });
 
     service.addToRolePolicy(
@@ -60,10 +64,8 @@ export class WebConstruct extends Construct {
     service.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: [
-          "iot:Publish"
-        ],
-        resources: ["arn:aws:iot:*:*:topic/robot_*/topic"]
+        actions: ["iot:Publish"],
+        resources: ["arn:aws:iot:*:*:topic/robot_*/topic"],
       })
     );
 

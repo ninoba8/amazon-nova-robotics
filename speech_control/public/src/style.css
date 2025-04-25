@@ -32,9 +32,15 @@ body {
   height: 100vh;
 }
 
+#logo {
+  display: block;
+  margin: 0 auto 24px auto;
+  max-width: 100%;
+}
+
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  margin-top: 16px;
+  margin-bottom: 24px;
 }
 
 #app {
