@@ -51,6 +51,106 @@ export class ToolProcessor {
   }
 }
 
+export const DefaultToolSchema = JSON.stringify({
+  type: "object",
+  properties: {},
+  required: [],
+});
+
+const toolList = [
+  {
+    name: "stand",
+    description:
+      "Command the robot to stand up and maintain a standing position.",
+  },
+  {
+    name: "go_forward",
+    description:
+      "Command the robot to move forward in the direction it is currently facing.",
+  },
+  {
+    name: "back_fast",
+    description: "Command the robot to move backward quickly.",
+  },
+  {
+    name: "left_move_fast",
+    description: "Command the robot to move left quickly.",
+  },
+  {
+    name: "right_move_fast",
+    description: "Command the robot to move right quickly.",
+  },
+  { name: "sit_ups", description: "Command the robot to perform sit-ups." },
+  { name: "turn_left", description: "Command the robot to turn left." },
+  { name: "turn_right", description: "Command the robot to turn right." },
+  { name: "wave", description: "Command the robot to wave its hand." },
+  { name: "bow", description: "Command the robot to bow." },
+  { name: "squat", description: "Command the robot to squat down." },
+  {
+    name: "chest",
+    description: "Command the robot to perform chest exercises.",
+  },
+  {
+    name: "left_shot_fast",
+    description: "Command the robot to perform a fast left punch.",
+  },
+  {
+    name: "right_shot_fast",
+    description: "Command the robot to perform a fast right punch.",
+  },
+  {
+    name: "wing_chun",
+    description: "Command the robot to perform Wing Chun moves.",
+  },
+  {
+    name: "left_uppercut",
+    description: "Command the robot to perform a left uppercut.",
+  },
+  {
+    name: "right_uppercut",
+    description: "Command the robot to perform a right uppercut.",
+  },
+  {
+    name: "left_kick",
+    description: "Command the robot to perform a left kick.",
+  },
+  {
+    name: "right_kick",
+    description: "Command the robot to perform a right kick.",
+  },
+  {
+    name: "stand_up_front",
+    description: "Command the robot to stand up from the front.",
+  },
+  {
+    name: "stand_up_back",
+    description: "Command the robot to stand up from the back.",
+  },
+  { name: "twist", description: "Command the robot to twist its body." },
+  { name: "stand_slow", description: "Command the robot to stand up slowly." },
+  {
+    name: "stepping",
+    description: "Command the robot to perform stepping motions.",
+  },
+  { name: "stop", description: "Command the robot to stop all actions." },
+];
+
+export const tools = toolList.map(({ name, description }) => ({
+  toolSpec: {
+    name,
+    description,
+    inputSchema: { json: DefaultToolSchema },
+  },
+}));
+
+function getToolsPrompt(
+  toolList: { name: string; description: string }[]
+): string {
+  return toolList
+    .map((tool) => `- ${tool.name}: ${tool.description}`)
+    .join("\n");
+}
+
 export const DefaultSystemPrompt = `
 You are a robot Command assistant. 
 Your primary role is to assist the user by calling available tools to perform actions or physical tasks. 
@@ -61,215 +161,5 @@ When the user asks you to perform a task, respond with the name of the tool that
 For example, if the user asks you to "make the robot stand up", you should respond with "stand".
 
 Available tools:
-- stand: Command the robot to stand up and maintain a standing position.
-- go_forward: Command the robot to move forward in the direction it is currently facing.
-- back_fast: Command the robot to move backward quickly.
-- left_move_fast: Command the robot to move left quickly.
-- right_move_fast: Command the robot to move right quickly.
-- sit_ups: Command the robot to perform sit-ups.
-- turn_left: Command the robot to turn left.
-- turn_right: Command the robot to turn right.
-- wave: Command the robot to wave its hand.
-- bow: Command the robot to bow.
-- squat: Command the robot to squat down.
-- chest: Command the robot to perform chest exercises.
-- left_shot_fast: Command the robot to perform a fast left punch.
-- right_shot_fast: Command the robot to perform a fast right punch.
-- wing_chun: Command the robot to perform Wing Chun moves.
-- left_uppercut: Command the robot to perform a left uppercut.
-- right_uppercut: Command the robot to perform a right uppercut.
-- left_kick: Command the robot to perform a left kick.
-- right_kick: Command the robot to perform a right kick.
-- stand_up_front: Command the robot to stand up from the front.
-- stand_up_back: Command the robot to stand up from the back.
-- twist: Command the robot to twist its body.
-- stand_slow: Command the robot to stand up slowly.
-- stepping: Command the robot to perform stepping motions.
-- stop: Command the robot to stop all actions.
+${getToolsPrompt(toolList)}
 `;
-
-export const DefaultToolSchema = JSON.stringify({
-  type: "object",
-  properties: {},
-  required: [],
-});
-
-export const tools = [
-  {
-    toolSpec: {
-      name: "stand",
-      description:
-        "Command the robot to stand up and maintain a standing position.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "go_forward",
-      description:
-        "Command the robot to move forward in the direction it is currently facing.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "back_fast",
-      description: "Command the robot to move backward quickly.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "left_move_fast",
-      description: "Command the robot to move left quickly.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "right_move_fast",
-      description: "Command the robot to move right quickly.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "sit_ups",
-      description: "Command the robot to perform sit-ups.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "turn_left",
-      description: "Command the robot to turn left.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "turn_right",
-      description: "Command the robot to turn right.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "wave",
-      description: "Command the robot to wave its hand.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "bow",
-      description: "Command the robot to bow.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "squat",
-      description: "Command the robot to squat down.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "chest",
-      description: "Command the robot to perform chest exercises.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "left_shot_fast",
-      description: "Command the robot to perform a fast left punch.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "right_shot_fast",
-      description: "Command the robot to perform a fast right punch.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "wing_chun",
-      description: "Command the robot to perform Wing Chun moves.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "left_uppercut",
-      description: "Command the robot to perform a left uppercut.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "right_uppercut",
-      description: "Command the robot to perform a right uppercut.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "left_kick",
-      description: "Command the robot to perform a left kick.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "right_kick",
-      description: "Command the robot to perform a right kick.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "stand_up_front",
-      description: "Command the robot to stand up from the front.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "stand_up_back",
-      description: "Command the robot to stand up from the back.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "twist",
-      description: "Command the robot to twist its body.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "stand_slow",
-      description: "Command the robot to stand up slowly.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "stepping",
-      description: "Command the robot to perform stepping motions.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-  {
-    toolSpec: {
-      name: "stop",
-      description: "Command the robot to stop all actions.",
-      inputSchema: { json: DefaultToolSchema },
-    },
-  },
-];
