@@ -116,7 +116,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message, robot: selectedRobot })
+                body: JSON.stringify({ message, robot: selectedRobot, session_id: Math.floor(Math.random() * 1000000) })
             });
 
             const data = await response.json();
