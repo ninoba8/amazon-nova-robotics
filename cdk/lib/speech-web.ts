@@ -15,16 +15,16 @@ export class SpeechControlWebConstruct extends Construct {
       directory: path.join(__dirname, "../../speech_control"),
     });
 
-    const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(
-      this,
-      "AutoScalingConfiguration",
-      {
-        autoScalingConfigurationName: "RobotWebAutoScalingConfiguration",
-        maxConcurrency: 100,
-        maxSize: 3,
-        minSize: 1,
-      }
-    );
+    // const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(
+    //   this,
+    //   "AutoScalingConfiguration",
+    //   {
+    //     autoScalingConfigurationName: "RobotWebAutoScalingConfiguration",
+    //     maxConcurrency: 100,
+    //     maxSize: 3,
+    //     minSize: 1,
+    //   }
+    // );
 
     const observabilityConfiguration = new apprunner.ObservabilityConfiguration(
       this,
@@ -48,7 +48,7 @@ export class SpeechControlWebConstruct extends Construct {
       memory: apprunner.Memory.HALF_GB,
       autoDeploymentsEnabled: true,
       observabilityConfiguration,
-      autoScalingConfiguration,
+      // autoScalingConfiguration,
     });
 
     service.addToRolePolicy(
