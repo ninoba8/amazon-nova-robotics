@@ -123,8 +123,17 @@
             const messagesDiv = document.getElementById('messages');
             messagesDiv.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
             messagesDiv.innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
             userInput.value = '';
         }
+
+        // Add event listener for Enter key
+        document.getElementById('user-input').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
     </script>
 </body>
 
