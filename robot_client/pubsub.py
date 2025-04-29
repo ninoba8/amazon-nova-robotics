@@ -119,6 +119,7 @@ def main():
             on_lifecycle_connection_success=on_lifecycle_connection_success,
             on_lifecycle_connection_failure=on_lifecycle_connection_failure,
             client_id=input_client_id,
+            keep_alive_interval_sec=5,
         )
         logging.info("MQTT5 Client Created")
 
