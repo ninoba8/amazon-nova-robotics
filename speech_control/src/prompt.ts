@@ -1,5 +1,5 @@
 import { IoTPublisher } from "./iot";
-import { Actions } from "./consts";
+import { Actions, toolList } from "./consts";
 
 export class ToolProcessor {
   private robot: string;
@@ -56,84 +56,6 @@ export const DefaultToolSchema = JSON.stringify({
   properties: {},
   required: [],
 });
-
-const toolList = [
-  {
-    name: "back_fast",
-    description: "Command the robot to move backward quickly.",
-  },
-  { name: "bow", description: "Command the robot to bow." },
-  {
-    name: "chest",
-    description: "Command the robot to perform chest exercises.",
-  },
-  {
-    name: "go_forward",
-    description:
-      "Command the robot to move forward in the direction it is currently facing.",
-  },
-  {
-    name: "left_kick",
-    description: "Command the robot to perform a left kick.",
-  },
-  {
-    name: "left_move_fast",
-    description: "Command the robot to move left quickly.",
-  },
-  {
-    name: "left_shot_fast",
-    description: "Command the robot to perform a fast left punch.",
-  },
-  {
-    name: "left_uppercut",
-    description: "Command the robot to perform a left uppercut.",
-  },
-  {
-    name: "right_kick",
-    description: "Command the robot to perform a right kick.",
-  },
-  {
-    name: "right_move_fast",
-    description: "Command the robot to move right quickly.",
-  },
-  {
-    name: "right_shot_fast",
-    description: "Command the robot to perform a fast right punch.",
-  },
-  {
-    name: "right_uppercut",
-    description: "Command the robot to perform a right uppercut.",
-  },
-  { name: "sit_ups", description: "Command the robot to perform sit-ups." },
-  { name: "squat", description: "Command the robot to squat down." },
-  {
-    name: "stand",
-    description:
-      "Command the robot to stand up and maintain a standing position.",
-  },
-  { name: "stand_slow", description: "Command the robot to stand up slowly." },
-  {
-    name: "stand_up_back",
-    description: "Command the robot to stand up from the back.",
-  },
-  {
-    name: "stand_up_front",
-    description: "Command the robot to stand up from the front.",
-  },
-  {
-    name: "stepping",
-    description: "Command the robot to perform stepping motions.",
-  },
-  { name: "stop", description: "Command the robot to stop all actions." },
-  { name: "turn_left", description: "Command the robot to turn left." },
-  { name: "turn_right", description: "Command the robot to turn right." },
-  { name: "twist", description: "Command the robot to twist its body." },
-  { name: "wave", description: "Command the robot to wave its hand." },
-  {
-    name: "wing_chun",
-    description: "Command the robot to perform Wing Chun moves.",
-  },
-];
 
 export const tools = toolList.map(({ name, description }) => ({
   toolSpec: {
