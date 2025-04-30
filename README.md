@@ -18,6 +18,7 @@ nvm alias default 22
 ```
 
 ```
+cd cdk
 pip install --upgrade awscli
 npm uninstall -g cdk
 npm install -g cdk
