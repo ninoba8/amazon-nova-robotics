@@ -61,6 +61,7 @@ actions: Dict[str, Dict[str, Any]] = {
         "name": "stand_up_front",
     },
     "stepping": {"sleep_time": 3, "action": ["24", "2"], "name": "stepping"},
+    "stop": {"sleep_time": 3, "action": ["24", "2"], "name": "stop"},
     "turn_left": {"sleep_time": 4, "action": ["7", "4"], "name": "turn_left"},
     "turn_right": {"sleep_time": 4, "action": ["8", "4"], "name": "turn_right"},
     "twist": {"sleep_time": 4, "action": ["22", "1"], "name": "twist"},
@@ -147,15 +148,6 @@ class ActionExecutor:
             try:
                 time.sleep(1 - time.time() % 1)
                 action_item = self.action_queue.get(timeout=1)
-                action_name = action_item["name"]
-                if action_name == "stop":
-                    self.logger.error(
-                        "Received stop command, stopping action execution."
-                    )
-                    self.clear_action_queue()
-                    self.current_action = idle_action.copy()
-                    self.is_running = False
-                    continue
                 self.is_running = True
                 self._execute_action(action_item)
                 time.sleep(0.5)
@@ -165,12 +157,21 @@ class ActionExecutor:
 
     def add_action_to_queue(self, action_name: str) -> None:
         """Add a new action to the queue."""
+        action_id = str(uuid4())
+
+        if action_name == "stop":
+            self.clear_action_queue()
+            self.current_action = idle_action.copy()
+            with self.queue_lock:
+                self.action_queue.put({"id": action_id, "name": "stand"})
+            return
+
         if action_name not in actions:
             self.logger.error(
                 "Action '%s' not found in actions dictionary.", action_name
             )
             return
-        action_id = str(uuid4())
+
         with self.queue_lock:
             self.action_queue.put({"id": action_id, "name": action_name})
 

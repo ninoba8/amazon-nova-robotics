@@ -22,7 +22,7 @@ const bedrockClient = new NovaSonicBidirectionalStreamClient({
     maxConcurrentStreams: 10,
   },
   clientConfig: {
-    region: process.env.AWS_REGION || "us-east-1",
+    region: process.env.AWS_BEDROCK_REGION || "us-east-1",
     credentials: isInCloud
       ? fromContainerMetadata()
       : fromIni({ profile: AWS_PROFILE_NAME }),
@@ -68,7 +68,9 @@ io.on("connection", (socket) => {
 
   try {
     // Create session with the new API
-    const session = bedrockClient.createStreamSession(sessionId);
+    const session = bedrockClient.createStreamSession(sessionId, {
+      clientConfig: { region: process.env.AWS_BEDROCK_REGION || "us-east-1" },
+    });
     bedrockClient.initiateSession(sessionId);
 
     setInterval(() => {
