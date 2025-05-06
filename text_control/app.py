@@ -157,8 +157,8 @@ You are a helpful robot assistant. You control various robots that can perform p
 
 Available commands are: {', '.join(actions.keys())}.
 
-When a user asks you to perform an action, respond in a friendly way and execute the command.
-If you need to execute multiple actions, separate them by commas.
+When a user asks you to perform an action, respond in a friendly way and execute the command in order.
+If you need to execute multiple actions, separate them by commas, and don't said anything else.
 If a user asks for something that's not a valid action, politely inform them which actions are available.
 """
 
@@ -187,7 +187,7 @@ def chat():
     # Call Nova via Bedrock API using converse method
     try:
         response = bedrock_runtime.converse(
-            modelId="us.amazon.nova-lite-v1:0",  # Updated to use nova-lite
+            modelId="us.amazon.nova-pro-v1:0",  # Updated to use nova-pro
             messages=messages,
             system=system,
             inferenceConfig={"maxTokens": 1024, "temperature": 0.7, "topP": 0.9},
@@ -203,9 +203,10 @@ def chat():
 
         # Check if Nova's response contains any of our robot commands
         potential_actions = []
-        for action in actions.keys():
-            if action in bot_response.lower():
-                potential_actions.append(action)
+        for word in bot_response.lower().split():
+            word = "".join(char for char in word if char.isalnum() or char == "_")
+            if word in actions.keys():
+                potential_actions.append(word)
 
         # If comma-separated commands are detected in the user input, prioritize those
         if "," in user_message:
