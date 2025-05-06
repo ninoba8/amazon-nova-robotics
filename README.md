@@ -1,4 +1,4 @@
-# amazon-nova-robotic
+# Amazon Nova Robotic
 
 Robotic with AWS IoT, AWS Bedrock, and Amazon Nova.
 
@@ -32,13 +32,9 @@ aws configure
 ```
 
 Default region name [None]: us-east-1
+
 Default output format [None]: json
 
-Get AWS IoT Certifications
-
-```
-aws s3 sync s3://<CdkStack.RobotDataBucketName> robot_client/certificates/
-```
 
 # Server side Deployment
 
@@ -59,6 +55,12 @@ cdk deploy --require-approval never
 
 ```
 cdk destroy --require-approval never
+```
+
+## Download AWS IoT Certifications
+
+```
+aws s3 sync s3://<CdkStack.RobotDataBucketName> robot_client/certificates/
 ```
 
 # Robot Deployment
