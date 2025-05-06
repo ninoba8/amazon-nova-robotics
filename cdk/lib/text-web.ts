@@ -30,6 +30,9 @@ export class TextControlWebConstruct extends Construct {
       handler: "app.handler",
       timeout: Duration.seconds(30),
       runtime: lambda.Runtime.PYTHON_3_13,
+      environment: {
+        AWS_BEDROCK_REGION: "us-east-1",
+      },
     });
 
     flaskLambda.addToRolePolicy(

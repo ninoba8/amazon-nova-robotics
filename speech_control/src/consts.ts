@@ -78,6 +78,7 @@ export const Actions: {
     name: "stand_up_front",
   },
   stepping: { sleep_time: 3, action: ["24", "2"], name: "stepping" },
+  stop: { sleep_time: 3, action: ["24", "2"], name: "stop" },
   turn_left: { sleep_time: 4, action: ["7", "4"], name: "turn_left" },
   turn_right: { sleep_time: 4, action: ["8", "4"], name: "turn_right" },
   twist: { sleep_time: 4, action: ["22", "1"], name: "twist" },
@@ -186,6 +187,10 @@ export const toolList = [
   },
   {
     name: "stepping",
+    description: "Command the robot to perform stepping motions.",
+  },
+  {
+    name: "stop",
     description: "Command the robot to perform stepping motions.",
   },
   { name: "turn_left", description: "Command the robot to turn left." },

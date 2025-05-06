@@ -1,3 +1,4 @@
+import os
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep
@@ -11,15 +12,19 @@ from flask import Flask, jsonify, render_template, request
 app = Flask(__name__)
 
 # Initialize AWS clients with retry configuration
-config = Config(
-    region_name="us-east-1", retries={"max_attempts": 3, "mode": "standard"}
+iot_client = boto3.client(
+    "iot-data",
+    config=Config(retries={"max_attempts": 3, "mode": "standard"}),
+)
+# Use environment variable or default to us-east-1 only as fallback
+AWS_BEDROCK_REGION = os.getenv("AWS_BEDROCK_REGION", "us-east-1")
+bedrock_runtime = boto3.client(
+    "bedrock-runtime",
+    config=Config(
+        region_name=AWS_BEDROCK_REGION, retries={"max_attempts": 3, "mode": "standard"}
+    ),
 )
 
-iot_client = boto3.client("iot-data", config=config)
-bedrock_runtime = boto3.client("bedrock-runtime", config=config)
-
-# Endpoint for IoT connectivity
-input_endpoint = "a1qlex7vqi1791-ats.iot.us-east-1.amazonaws.com"
 
 # Session storage for Nova conversation tracking
 active_sessions = {}
@@ -82,6 +87,7 @@ actions: Dict[str, Dict[str, Any]] = {
         "name": "stand_up_front",
     },
     "stepping": {"sleep_time": 3, "action": ["24", "2"], "name": "stepping"},
+    "stop": {"sleep_time": 3, "action": ["24", "2"], "name": "stop"},
     "turn_left": {"sleep_time": 4, "action": ["7", "4"], "name": "turn_left"},
     "turn_right": {"sleep_time": 4, "action": ["8", "4"], "name": "turn_right"},
     "twist": {"sleep_time": 4, "action": ["22", "1"], "name": "twist"},
