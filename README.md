@@ -1,6 +1,9 @@
-# Amazon Nova Robotic
+# Amazon Nova Robotics
 
 Robotic with AWS IoT, AWS Bedrock, and Amazon Nova.
+
+### Tech Blog
+[Voice-Controlled Humanoid Robots Using Amazon Nova Sonic and AWS IoT](https://community.aws/content/2vqYxQLMJ8dYsL9kJnfPj0wIps3/voice-controlled-humanoid-robots-using-amazon-nova-sonic-and-aws-iot)
 
 ## Update CDK and all packages for CodeSpaces
 
