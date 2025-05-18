@@ -3,6 +3,7 @@ import { Construct } from "constructs";
 import { RoboticConstruct } from "./robot";
 import { SpeechControlWebConstruct } from "./speech-web";
 import { TextControlWebConstruct } from "./text-web";
+import { RobotSsmConstruct } from "./robot-ssm";
 
 export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -22,6 +23,14 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
       this,
       "TextControlWebConstruct"
     );
+
+    const ssmNames = Array.from(
+      { length: numberOfRobots },
+      (_, i) => `RaspberryPiRobot${i + 1}`
+    );
+    new RobotSsmConstruct(this, "RobotSsmConstruct", {
+      thingNames: ssmNames,
+    });
 
     new cdk.CfnOutput(this, "speechUrl", {
       description: "The URL of the Speech Control Web",
