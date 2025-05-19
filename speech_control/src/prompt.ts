@@ -12,6 +12,9 @@ export class ToolProcessor {
   setRobot(robot: string) {
     this.robot = robot;
   }
+  getRobot() {
+    return this.robot;
+  }
 
   public async processToolUse(
     toolName: string,
@@ -81,6 +84,8 @@ Keep your responses concise and focused on the task at hand.
 Don't say anything similar to "can't command the robot to perform physical actions" or "I can't do that".
 When the user asks you to perform a task, respond with the name of the tool that can be used to accomplish it.
 For example, if the user asks you to "make the robot stand up", you should respond with "stand".
+
+<backgound></backgound>
 
 Available tools:
 ${getToolsPrompt(toolList)}

@@ -29,7 +29,6 @@
     "@aws-cdk/aws-lambda-python-alpha": "^2.196.0-alpha.0",
     "@aws-cdk/aws-s3": "^1.204.0",
     "@aws-cdk/aws-s3-deployment": "^1.204.0",
-    "@aws-cdk/aws-dynamodb": "^1.204.0",
     "aws-cdk-lib": "^2.196.0",
     "cdk-iot-core-certificates-v3": "^0.0.14",
     "constructs": "^10.4.2"

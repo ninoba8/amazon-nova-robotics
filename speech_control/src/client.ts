@@ -23,6 +23,7 @@ import { DefaultSystemPrompt } from "./prompt";
 import { StreamSession } from "./streamSession";
 import { InferenceConfig } from "./types";
 import { ToolProcessor, tools } from "./prompt";
+import { Database } from "./database";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
   requestHandlerConfig?:
@@ -58,6 +59,7 @@ export class NovaSonicBidirectionalStreamClient {
   private sessionLastActivity: Map<string, number> = new Map();
   private sessionCleanupInProgress = new Set<string>();
   private toolProcessor: ToolProcessor;
+  private database: Database;
 
   constructor(config: NovaSonicBidirectionalStreamClientConfig) {
     const nodeHttp2Handler = new NodeHttp2Handler({
@@ -86,6 +88,7 @@ export class NovaSonicBidirectionalStreamClient {
     };
 
     this.toolProcessor = new ToolProcessor();
+    this.database = new Database();
   }
 
   public isSessionActive(sessionId: string): boolean {
@@ -549,13 +552,33 @@ export class NovaSonicBidirectionalStreamClient {
   public setRobot(robot: string) {
     this.toolProcessor.setRobot(robot);
   }
-  public setupSystemPromptEvent(
+  public async setupSystemPromptEvent(
     sessionId: string,
     textConfig: typeof DefaultTextConfiguration = DefaultTextConfiguration,
     systemPromptContent: string = DefaultSystemPrompt
-  ): void {
+  ): Promise<void> {
     console.log(`Setting up systemPrompt events for session ${sessionId}...`);
-    console.log(`Using system prompt content: ${systemPromptContent}`);
+
+    const robot_id = this.toolProcessor.getRobot();
+    const context = await this.database.getRobot(robot_id);
+    let systemPrompt = systemPromptContent;
+    if (context) {
+      const name = context.robot_name;
+      const background = context.context;
+
+      systemPrompt = systemPromptContent.replace(
+        "<backgound></backgound>",
+        `<backgound>
+        Your Name:${name} 
+        Backgound: ${background}
+        </backgound>
+         `
+      );
+    } else {
+      systemPrompt = systemPromptContent.replace("<backgound></backgound>", "");
+    }
+
+    console.log(`Using system prompt content: ${systemPrompt}`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
     // Text content start
@@ -579,7 +602,7 @@ export class NovaSonicBidirectionalStreamClient {
         textInput: {
           promptName: session.promptName,
           contentName: textPromptID,
-          content: systemPromptContent,
+          content: systemPrompt,
         },
       },
     });

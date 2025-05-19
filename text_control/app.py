@@ -179,12 +179,12 @@ def chat():
     context = get_robot(selected_robot)
     if context:
         name = context.get("robot_name")
-        context = context.get("context")
+        backgound = context.get("context")
         system_prompt = SYSTEM_PROMPT.replace(
             "<backgound></backgound>", 
             f"""
 <backgound>Your Name:{name} 
-Backgound: {context}
+Backgound: {Backgound}
 </backgound>
             """
         )
