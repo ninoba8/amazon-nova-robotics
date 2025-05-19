@@ -37,6 +37,7 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
       (_, i) => `RaspberryPiRobot${i + 1}`
     );
     new RobotSsmConstruct(this, "RobotSsmConstruct", {
+      prefix: "humanoid",
       thingNames: ssmNames,
     });
 

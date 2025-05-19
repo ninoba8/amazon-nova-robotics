@@ -74,7 +74,7 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${robot.id}</td>
-                    <td>${robot.name||''}</td>
+                    <td>${robot.robot_name||''}</td>
                     <td>${robot.context||''}</td>
                     <td>
                         <button onclick="editRobot('${robot.id}')" class="btn btn-sm btn-outline-info me-1">Edit</button>
@@ -91,7 +91,7 @@
         function editRobot(id) {
             fetch(`/robots/${id}`).then(r => r.json()).then(robot => {
                 document.getElementById('robot-select').value = robot.id;
-                document.getElementById('robot-name').value = robot.name||'';
+                document.getElementById('robot-name').value = robot.robot_name||'';
                 document.getElementById('robot-context').value = robot.context||'';
             });
         }

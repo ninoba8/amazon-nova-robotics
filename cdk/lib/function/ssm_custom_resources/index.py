@@ -22,12 +22,24 @@ def lambda_handler(event, context):
     physical_resource_id = ""
     try:
         thing_name = event["ResourceProperties"]["ThingName"]
+        prefix = event["ResourceProperties"]["Prefix"]
 
         if event["RequestType"] == CREATE:
+            
             ssm_response = ssm_client.create_activation(
                 DefaultInstanceName=thing_name,
                 IamRole=ssm_service_role,
                 Description=thing_name,
+                Tags=[
+                    {
+                        "Key": "Name",
+                        "Value": f"{prefix}-{thing_name}",
+                    },
+                    {
+                        "Key": "Prefix",
+                        "Value": prefix,
+                    },
+                ],
             )
 
             physical_resource_id = ssm_response[key_name_id]

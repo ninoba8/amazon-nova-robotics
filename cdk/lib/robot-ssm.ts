@@ -6,6 +6,7 @@ import * as cr from "aws-cdk-lib/custom-resources";
 import path = require("path");
 
 export interface RobotSsmConstructProps {
+  prefix: string;
   thingNames: string[];
 }
 
@@ -13,7 +14,7 @@ export class RobotSsmConstruct extends Construct {
   constructor(scope: Construct, id: string, props: RobotSsmConstructProps) {
     super(scope, id);
 
-    const ssmServiceRole = new iam.Role(this, "SSMServiceRole", {      
+    const ssmServiceRole = new iam.Role(this, "SSMServiceRole", {
       roleName: "RobotSSMServiceRole",
       assumedBy: new iam.ServicePrincipal("ssm.amazonaws.com", {
         conditions: {
@@ -48,6 +49,7 @@ export class RobotSsmConstruct extends Construct {
                 "iam:PassRole",
                 "ssm:CreateActivation",
                 "ssm:DeleteActivation",
+                "ssm:AddTagsToResource",
               ],
               resources: ["*"],
             }),
@@ -58,23 +60,100 @@ export class RobotSsmConstruct extends Construct {
 
     const lambdaFunction = new lambda.Function(this, "Function", {
       description: "Lambda function to create SSM activation",
-      code: lambda.Code.fromAsset(path.join(__dirname, "function/ssm_custom_resources"), {
-      bundling: {
-        image: lambda.Runtime.PYTHON_3_10.bundlingImage,
-        command: [
-        "bash", "-c", 
-        "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output"
-        ],
-      },
-      }),
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "function/ssm_custom_resources"),
+        {
+          bundling: {
+            image: lambda.Runtime.PYTHON_3_10.bundlingImage,
+            command: [
+              "bash",
+              "-c",
+              "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output",
+            ],
+          },
+        }
+      ),
       handler: "index.lambda_handler",
       runtime: lambda.Runtime.PYTHON_3_10,
       environment: {
-      REGION: cdk.Aws.REGION,
-      SSM_SERVICE_ROLE: ssmServiceRole.roleName,
+        REGION: cdk.Aws.REGION,
+        SSM_SERVICE_ROLE: ssmServiceRole.roleName,
       },
       role: functionRole,
       timeout: cdk.Duration.seconds(30),
+    });
+
+    const ssmUser = new iam.User(this, "SsmRunCommandUser", {
+      userName: "RobotSsmRunCommandUser",
+    });
+
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:SendCommand"],
+        resources: ["arn:aws:ssm:*:*:document/*"],
+      })
+    );
+
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:SendCommand"],
+        resources: ["*"],
+        conditions: {
+          StringLike: {
+            "ssm:resourceTag/Prefix": [props.prefix],
+          },
+        },
+      })
+    );
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:SendCommand"],
+        resources: ["arn:aws:ssm:us-east-1::document/AWS-*"],
+      })
+    );
+
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "ssm:UpdateInstanceInformation",
+          "ssm:ListCommands",
+          "ssm:ListCommandInvocations",
+          "ssm:GetDocument",
+        ],
+        resources: ["*"],
+      })
+    );
+
+    // Allow user to sign-in and use the AWS Console
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "iam:GetAccountPasswordPolicy",
+          "iam:ChangePassword",
+          "sts:GetCallerIdentity",
+          "console:Login",
+        ],
+        resources: ["*"],
+      })
+    );
+
+    new cdk.CfnOutput(this, "SsmRunCommandUserName", {
+      value: ssmUser.userName,
+      description: "IAM user with Run Command access for robots.",
+    });
+
+    const accessKey = new iam.CfnAccessKey(this, "CfnAccessKey", {
+      userName: ssmUser.userName,
+    });
+
+    new cdk.CfnOutput(this, "accessKeyId", { value: accessKey.ref });
+    new cdk.CfnOutput(this, "secretAccessKey", {
+      value: accessKey.attrSecretAccessKey,
     });
 
     for (let thingName of props.thingNames) {
@@ -84,13 +163,14 @@ export class RobotSsmConstruct extends Construct {
         {
           serviceToken: lambdaFunction.functionArn,
           properties: {
+            Prefix: props.prefix,
             ThingName: thingName,
-          }
+          },
         }
       );
 
-      new cdk.CfnOutput(this, `ActivationIdOutput${thingName}`, {   
-        key: `ActivationIdOutput${thingName}`,    
+      new cdk.CfnOutput(this, `ActivationIdOutput${thingName}`, {
+        key: `ActivationIdOutput${thingName}`,
         value: customResource.getAttString("ActivationId"),
         description: `The Activation ID created by the SSM activation for robot ${thingName}.`,
       });
