@@ -77,6 +77,28 @@
         #logo {
             margin-bottom: 20px;
         }
+
+        #loading {
+            display: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0, 123, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #007bff;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -88,7 +110,11 @@
         <div id="messages"></div>
         <div id="input-container">
             <input type="text" id="user-input" placeholder="Type your message here...">
-            <button onclick="sendMessage()">Send</button>
+            <button id="send-button" onclick="sendMessage()">Send</button>
+        </div>
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>Sending message...</p>
         </div>
         <select id="robot-select">
             <option value="robot_1">Robot 1</option>
@@ -103,28 +129,59 @@
     </div>
 
     <script>
+        // Flag to track if a request is in progress
+        let isRequestInProgress = false;
+
         async function sendMessage() {
+            // Don't send if a request is already in progress or if input is empty
             const userInput = document.getElementById('user-input');
+            if (isRequestInProgress || !userInput.value.trim()) {
+                return;
+            }
+
             const robotSelect = document.getElementById('robot-select');
             const message = userInput.value;
             const selectedRobot = robotSelect.value;
 
-            let endPoint = window.location.href.includes('prod') ? '/prod/chat' : '/chat';
+            // Set request in progress flag and show loading indicator
+            isRequestInProgress = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('send-button').disabled = true;
+            userInput.disabled = true;
+            robotSelect.disabled = true;
 
-            const response = await fetch(endPoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message, robot: selectedRobot, session_id: Math.floor(Math.random() * 1000000) })
-            });
+            try {
+                let endPoint = window.location.href.includes('prod') ? '/prod/chat' : '/chat';
 
-            const data = await response.json();
-            const messagesDiv = document.getElementById('messages');
-            messagesDiv.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
-            messagesDiv.innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            userInput.value = '';
+                const response = await fetch(endPoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message, robot: selectedRobot, session_id: Math.floor(Math.random() * 1000000) })
+                });
+
+                const data = await response.json();
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+                messagesDiv.innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                userInput.value = '';
+            } catch (error) {
+                console.error('Error:', error);
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+                messagesDiv.innerHTML += `<p><strong>System:</strong> Sorry, there was an error processing your request.</p>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } finally {
+                // Reset UI state regardless of success or failure
+                isRequestInProgress = false;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('send-button').disabled = false;
+                userInput.disabled = false;
+                robotSelect.disabled = false;
+                userInput.focus();
+            }
         }
 
         // Add event listener for Enter key

@@ -4,12 +4,18 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import path = require("path");
 import * as iam from "aws-cdk-lib/aws-iam";
+import { DatabaseConstruct } from "./datebase";
+
+export interface TextControlWebConstructProps {
+  readonly database: DatabaseConstruct;
+}
 
 export class TextControlWebConstruct extends Construct {
   public readonly serviceUrl: string;
+  private readonly database: Construct;
 
-  constructor(scope: Construct, id: string) {
-    super(scope, id);
+  constructor(scope: Construct, id: string, props: TextControlWebConstructProps) {
+    super(scope, id);  
 
     const restApi = new RestApi(this, "TextControlWebApi", {
       restApiName: "TextControlWebApi",
@@ -32,8 +38,11 @@ export class TextControlWebConstruct extends Construct {
       runtime: lambda.Runtime.PYTHON_3_13,
       environment: {
         AWS_BEDROCK_REGION: "us-east-1",
+        ROBOT_TABLE : props.database.robotTable.tableName,
       },
     });
+
+    props.database.robotTable.grantFullAccess(flaskLambda);
 
     flaskLambda.addToRolePolicy(
       new iam.PolicyStatement({

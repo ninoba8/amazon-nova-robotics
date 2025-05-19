@@ -4,6 +4,7 @@ import { RoboticConstruct } from "./robot";
 import { SpeechControlWebConstruct } from "./speech-web";
 import { TextControlWebConstruct } from "./text-web";
 import { RobotSsmConstruct } from "./robot-ssm";
+import { DatabaseConstruct } from "./datebase";
 
 export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,11 +18,18 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
     const roboticConstruct = new RoboticConstruct(this, "RoboticConstruct", {
       thingNames: thingNames,
     });
-    const webConstruct = new SpeechControlWebConstruct(this, "WebConstruct");
+
+    const databaseConstruct = new DatabaseConstruct(this, "DatabaseConstruct");
+
+    const webConstruct = new SpeechControlWebConstruct(this, "WebConstruct",{
+      database: databaseConstruct,
+    });
 
     const textControlWebConstruct = new TextControlWebConstruct(
       this,
-      "TextControlWebConstruct"
+      "TextControlWebConstruct",{
+      database: databaseConstruct,
+      }
     );
 
     const ssmNames = Array.from(

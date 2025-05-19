@@ -9,6 +9,9 @@ import boto3
 from botocore.config import Config
 from flask import Flask, jsonify, render_template, request
 
+from database import get_robot, upsert_robot, delete_robot, list_robots
+
+
 app = Flask(__name__)
 
 # Initialize AWS clients with retry configuration
@@ -155,6 +158,8 @@ def process_actions(actions_to_execute, selected_robot):
 SYSTEM_PROMPT = f"""
 You are a helpful robot assistant. You control various robots that can perform physical actions.
 
+<backgound></backgound>
+
 Available commands are: {', '.join(actions.keys())}.
 
 When a user asks you to perform an action, respond in a friendly way and execute the command in order.
@@ -170,6 +175,23 @@ def chat():
     selected_robot = request.json.get("robot")
     session_id = request.json.get("session_id", str(uuid.uuid4()))
 
+
+    context = get_robot(selected_robot)
+    if context:
+        name = context.get("robot_name")
+        context = context.get("context")
+        system_prompt = SYSTEM_PROMPT.replace(
+            "<backgound></backgound>", 
+            f"""
+<backgound>Your Name:{name} 
+Backgound: {context}
+</backgound>
+            """
+        )
+    else:
+        system_prompt = SYSTEM_PROMPT.replace("<backgound></backgound>", "")
+
+
     # Create or retrieve session history
     if session_id not in active_sessions:
         active_sessions[session_id] = []
@@ -182,7 +204,7 @@ def chat():
     for msg in active_sessions[session_id]:
         messages.append({"role": msg["role"], "content": [{"text": msg["content"]}]})
 
-    system = [{"text": SYSTEM_PROMPT}]
+    system = [{"text": system_prompt}]
 
     # Call Nova via Bedrock API using converse method
     try:
@@ -248,6 +270,46 @@ def chat():
             ),
             500,
         )
+
+# --- Robot CRUD API ---
+@app.route("/robots", methods=["GET"])
+def robots_list():
+    robots = list_robots()
+    return jsonify(robots)
+
+@app.route("/robots/<robot_id>", methods=["GET"])
+def robot_get(robot_id):
+    robot = get_robot(robot_id)
+    if robot:
+        return jsonify(robot)
+    return jsonify({"error": "Not found"}), 404
+
+@app.route("/robots", methods=["POST"])
+def robot_create():
+    data = request.json
+    robot_id = data.get("id")
+    if not robot_id:
+        return jsonify({"error": "Missing id"}), 400
+    robot = upsert_robot(robot_id, data)
+    return jsonify(robot), 201
+
+@app.route("/robots/<robot_id>", methods=["PUT"])
+def robot_update(robot_id):
+    data = request.json
+    print(data)
+    robot = upsert_robot(robot_id, data)
+    return jsonify(robot)
+
+@app.route("/robots/<robot_id>", methods=["DELETE"])
+def robot_delete(robot_id):
+    delete_robot(robot_id)
+    return jsonify({"deleted": True})
+
+# --- Robot CRUD Page ---
+@app.route("/robot")
+def robot_page():
+    return render_template("robot.html")
+
 
 
 def handler(event, context):
