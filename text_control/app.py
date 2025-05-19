@@ -184,7 +184,7 @@ def chat():
             "<backgound></backgound>", 
             f"""
 <backgound>Your Name:{name} 
-Backgound: {Backgound}
+Backgound: {backgound}
 </backgound>
             """
         )
