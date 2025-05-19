@@ -86,57 +86,56 @@ export class RobotSsmConstruct extends Construct {
     const ssmUser = new iam.User(this, "SsmRunCommandUser", {
       userName: "RobotSsmRunCommandUser",
     });
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:List*", "ssm:Describe*"],
+        resources: ["*"],
+      })
+    );
+
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "ssm:SendCommand",
+          "ssm:StartSession",
+          "ssm:ResumeSession",
+          "ssm:TerminateSession",
+        ],
+        resources: ["arn:aws:ssm:*:*:document/*"],
+        conditions: {
+          StringLike: {
+            "ssm:resourceTag/Prefix": ["humanoid"],
+          },
+        },
+      })
+    );
 
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ["ssm:SendCommand"],
         resources: ["arn:aws:ssm:*:*:document/*"],
-      })
-    );
-
-    ssmUser.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ["ssm:SendCommand"],
-        resources: ["*"],
         conditions: {
-          StringLike: {
-            "ssm:resourceTag/Prefix": [props.prefix],
+          Bool: {
+            "aws:ViaAWSService": "true",
           },
         },
       })
     );
-    ssmUser.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ["ssm:SendCommand"],
-        resources: ["arn:aws:ssm:us-east-1::document/AWS-*"],
-      })
-    );
 
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: [
-          "ssm:UpdateInstanceInformation",
-          "ssm:ListCommands",
-          "ssm:ListCommandInvocations",
-          "ssm:GetDocument",
-        ],
-        resources: ["*"],
-      })
-    );
-
-    // Allow user to sign-in and use the AWS Console
-    ssmUser.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: [
-          "iam:GetAccountPasswordPolicy",
           "iam:ChangePassword",
+          "iam:GetAccountPasswordPolicy",
+          "ssm:GetDocument",
+          "ssm:ListCommandInvocations",
+          "ssm:ListCommands",
+          "ssm:UpdateInstanceInformation",
           "sts:GetCallerIdentity",
-          "console:Login",
         ],
         resources: ["*"],
       })
