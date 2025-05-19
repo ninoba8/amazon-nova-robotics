@@ -34,7 +34,7 @@ export class StreamSession {
     textConfig: typeof DefaultTextConfiguration = DefaultTextConfiguration,
     systemPromptContent: string = DefaultSystemPrompt
   ): Promise<void> {
-    this.client.setupSystemPromptEvent(
+    await this.client.setupSystemPromptEvent(
       this.sessionId,
       textConfig,
       systemPromptContent
