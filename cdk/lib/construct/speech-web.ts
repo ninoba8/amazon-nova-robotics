@@ -19,7 +19,7 @@ export class SpeechControlWebConstruct extends Construct {
 
 
     const imageAsset = new assets.DockerImageAsset(this, "ImageAssets", {
-      directory: path.join(__dirname, "../../speech_control"),
+      directory: path.join(__dirname, "../../../speech_control"),
     });
 
     const autoScalingConfiguration = new apprunner.AutoScalingConfiguration(

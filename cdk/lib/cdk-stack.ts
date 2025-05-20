@@ -1,10 +1,10 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { RoboticConstruct } from "./robot";
-import { SpeechControlWebConstruct } from "./speech-web";
-import { TextControlWebConstruct } from "./text-web";
-import { RobotSsmConstruct } from "./robot-ssm";
-import { DatabaseConstruct } from "./datebase";
+import { RoboticConstruct } from "./construct/robot-iot";
+import { SpeechControlWebConstruct } from "./construct/speech-web";
+import { TextControlWebConstruct } from "./construct/text-web";
+import { RobotSsmConstruct } from "./construct/robot-ssm";
+import { DatabaseConstruct } from "./construct/datebase";
 
 export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {

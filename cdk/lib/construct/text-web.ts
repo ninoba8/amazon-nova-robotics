@@ -23,7 +23,7 @@ export class TextControlWebConstruct extends Construct {
     });
 
     const flaskLambda = new lambda.Function(this, "TextControlLambda", {
-      code: lambda.Code.fromAsset(path.join(__dirname, "../../text_control"), {
+      code: lambda.Code.fromAsset(path.join(__dirname, "../../../text_control"), {
         bundling: {
           image: lambda.Runtime.PYTHON_3_13.bundlingImage,
           command: [

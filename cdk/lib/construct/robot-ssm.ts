@@ -89,7 +89,7 @@ export class RobotSsmConstruct extends Construct {
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ["ssm:List*", "ssm:Describe*"],
+        actions: ["ssm:List*", "ssm:Describe*", "ssm:Get*"],
         resources: ["*"],
       })
     );
@@ -97,31 +97,26 @@ export class RobotSsmConstruct extends Construct {
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: [
-          "ssm:SendCommand",
-          "ssm:StartSession",
-          "ssm:ResumeSession",
-          "ssm:TerminateSession",
+        actions: ["ssm:SendCommand"],
+        resources: [
+          "arn:aws:ssm:*:*:document/*",
+          "arn:aws:ssm:*:*:managed-instance/*",
         ],
-        resources: ["arn:aws:ssm:*:*:document/*"],
-        conditions: {
-          StringLike: {
-            "ssm:resourceTag/Prefix": ["humanoid"],
-          },
-        },
       })
     );
 
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ["ssm:SendCommand"],
-        resources: ["arn:aws:ssm:*:*:document/*"],
-        conditions: {
-          Bool: {
-            "aws:ViaAWSService": "true",
-          },
-        },
+        actions: [
+          "ssm:StartSession",
+          "ssm:ResumeSession",
+          "ssm:TerminateSession",
+        ],
+        resources: [
+          "arn:aws:ssm:*:*:document/*",
+          "arn:aws:ssm:*:*:managed-instance/*",
+        ],
       })
     );
 
