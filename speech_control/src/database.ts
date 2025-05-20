@@ -1,5 +1,5 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument, GetCommandOutput, PutCommandOutput, UpdateCommandOutput, DeleteCommandOutput, ScanCommandOutput } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocument} from "@aws-sdk/lib-dynamodb";
 
 export interface RobotData {
   id: string;

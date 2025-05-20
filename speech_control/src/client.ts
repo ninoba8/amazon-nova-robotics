@@ -559,24 +559,28 @@ export class NovaSonicBidirectionalStreamClient {
   ): Promise<void> {
     console.log(`Setting up systemPrompt events for session ${sessionId}...`);
 
-    const robot_id = this.toolProcessor.getRobot();
-    const context = await this.database.getRobot(robot_id);
-    let systemPrompt = systemPromptContent;
-    if (context) {
-      const name = context.robot_name;
-      const background = context.context;
+    // const robot_id = this.toolProcessor.getRobot();
+    // const context = await this.database.getRobot(robot_id);
+    // let systemPrompt = systemPromptContent;
+    // if (context) {
+    //   const name = context.robot_name;
+    //   const background = context.context;
 
-      systemPrompt = systemPromptContent.replace(
-        "<backgound></backgound>",
-        `<backgound>
-        Your Name:${name} 
-        Backgound: ${background}
-        </backgound>
-         `
-      );
-    } else {
-      systemPrompt = systemPromptContent.replace("<backgound></backgound>", "");
-    }
+    //   systemPrompt = systemPromptContent.replace(
+    //     "<backgound></backgound>",
+    //     `<backgound>
+    //     Your Name:${name}
+    //     Backgound: ${background}
+    //     </backgound>
+    //      `
+    //   );
+    // } else {
+    //   systemPrompt = systemPromptContent.replace("<backgound></backgound>", "");
+    // }
+    let systemPrompt = systemPromptContent.replace(
+      "<backgound></backgound>",
+      ""
+    );
 
     console.log(`Using system prompt content: ${systemPrompt}`);
     const session = this.activeSessions.get(sessionId);
