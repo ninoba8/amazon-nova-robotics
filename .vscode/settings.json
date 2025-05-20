@@ -19,5 +19,7 @@
     "--disable=C0115",
     "--disable=C0116",
     "--disable=C0411"
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "files.autoSave": "onFocusChange"
 }

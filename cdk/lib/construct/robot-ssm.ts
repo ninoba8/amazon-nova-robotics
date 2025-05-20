@@ -97,26 +97,24 @@ export class RobotSsmConstruct extends Construct {
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ["ssm:SendCommand"],
-        resources: [
-          "arn:aws:ssm:*:*:document/*",
-          "arn:aws:ssm:*:*:managed-instance/*",
-        ],
+        actions: ["ssm:SendCommand", "ssm:StartSession"],
+        resources: ["arn:aws:ssm:*:*:document/*"],
       })
     );
-
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: [
-          "ssm:StartSession",
-          "ssm:ResumeSession",
-          "ssm:TerminateSession",
-        ],
-        resources: [
-          "arn:aws:ssm:*:*:document/*",
-          "arn:aws:ssm:*:*:managed-instance/*",
-        ],
+        actions: ["ssm:SendCommand", "ssm:StartSession"],
+        resources: ["arn:aws:ssm:*:*:managed-instance/*"],
+      })
+    );
+
+    // Add policy for session resources
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:ResumeSession", "ssm:TerminateSession"],
+        resources: ["arn:aws:ssm:*:*:session/${aws:username}-*"],
       })
     );
 
