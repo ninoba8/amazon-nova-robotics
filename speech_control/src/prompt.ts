@@ -85,7 +85,7 @@ Don't say anything similar to "can't command the robot to perform physical actio
 When the user asks you to perform a task, respond with the name of the tool that can be used to accomplish it.
 For example, if the user asks you to "make the robot stand up", you should respond with "stand".
 
-<backgound></backgound>
+<background></background>
 
 Available tools:
 ${getToolsPrompt(toolList)}
