@@ -172,6 +172,21 @@ function arrayBufferToBase64(buffer) {
     return btoa(binary.join(''));
 }
 
+// Parse URL query parameters
+function getQueryParams() {
+    const params = {};
+    const queryString = window.location.search.substring(1);
+    const pairs = queryString.split('&');
+    
+    for (let i = 0; i < pairs.length; i++) {
+        if (!pairs[i]) continue;
+        const pair = pairs[i].split('=');
+        params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+    }
+    
+    return params;
+}
+
 function stopStreaming() {
     if (!isStreaming) return;
 
@@ -518,4 +533,33 @@ startButton.addEventListener('click', startStreaming);
 stopButton.addEventListener('click', stopStreaming);
 
 // Initialize the app when the page loads
-document.addEventListener('DOMContentLoaded', initAudio);
+document.addEventListener('DOMContentLoaded', async () => {
+    await initAudio();
+    
+    // Check for robot parameter in URL
+    const params = getQueryParams();
+    if (params.robot) {
+        // Set robot selection
+        const robotValue = params.robot;
+        if (robotSelect.querySelector(`option[value="${robotValue}"]`)) {
+            robotSelect.value = robotValue;
+            selectedRobot = robotValue;
+            console.log(`Auto-selected robot: ${selectedRobot} from URL parameter`);
+            
+            // Start streaming after a short delay
+            setTimeout(() => {
+                console.log("Auto-starting streaming...");
+                startStreaming();
+            }, 3000);
+        }
+    }
+});
+
+// Auto-start if robot parameter is present
+const queryParams = getQueryParams();
+if (queryParams.robot) {
+    robotSelect.value = queryParams.robot;
+    selectedRobot = queryParams.robot;
+    console.log(`Auto-selected robot: ${selectedRobot}`);
+    initAudio();
+}

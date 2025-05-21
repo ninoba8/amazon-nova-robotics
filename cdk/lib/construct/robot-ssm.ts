@@ -109,6 +109,14 @@ export class RobotSsmConstruct extends Construct {
       })
     );
 
+    ssmUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:CancelCommand"],
+        resources: ["*"],
+      })
+    );
+
     // Add policy for session resources
     ssmUser.addToPolicy(
       new iam.PolicyStatement({
