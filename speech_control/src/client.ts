@@ -638,6 +638,23 @@ export class NovaSonicBidirectionalStreamClient {
     console.log(`Setting up prompt start event for session ${sessionId}...`);
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
+
+    const robot_id = this.toolProcessor.getRobot();
+    // Determine voiceId based on robot_id
+    let voiceId = "matthew";
+    if (robot_id) {
+      if (robot_id === "all") {
+        voiceId = "tiffany";
+      } else {
+        const lastChar = robot_id.slice(-1);
+        if (!isNaN(Number(lastChar)) && Number(lastChar) % 2 === 1) {
+          voiceId = "tiffany";
+        }
+      }
+    }
+    const audioConfig = { ...DefaultAudioOutputConfiguration, voiceId };
+    console.log(`${robot_id} using voice ID: ${voiceId}`);
+
     // Prompt start event
     this.addEventToSessionQueue(sessionId, {
       event: {
@@ -646,7 +663,7 @@ export class NovaSonicBidirectionalStreamClient {
           textOutputConfiguration: {
             mediaType: "text/plain",
           },
-          audioOutputConfiguration: DefaultAudioOutputConfiguration,
+          audioOutputConfiguration: audioConfig,
           toolUseOutputConfiguration: {
             mediaType: "application/json",
           },

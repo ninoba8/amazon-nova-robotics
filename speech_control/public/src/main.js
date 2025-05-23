@@ -90,11 +90,13 @@ async function initializeSession() {
     statusElement.textContent = "Initializing session...";
 
     try {
-        // Send events in sequence         
+        // Send events in sequence 
+        socket.emit('robot', robotSelect.value);
+        await new Promise(resolve => setTimeout(resolve, 250));        
         socket.emit('promptStart');
         socket.emit('systemPrompt');
         await new Promise(resolve => setTimeout(resolve, 1000));
-        socket.emit('robot', robotSelect.value);
+        
         socket.emit('audioStart');
 
         // Mark session as initialized

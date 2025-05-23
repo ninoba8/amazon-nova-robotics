@@ -2,7 +2,6 @@ import { Construct } from "constructs";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as cr from "aws-cdk-lib/custom-resources";
 import path = require("path");
 
 export interface RobotSsmConstructProps {
