@@ -25,7 +25,11 @@ export class ToolProcessor {
     console.log(`Tool use content:`, toolUseContent);
 
     if (!Object.keys(Actions).includes(toolName.toLocaleLowerCase())) {
-      throw new Error(`Invalid tool name: ${toolName}`);
+      // throw new Error(`Invalid tool name: ${toolName}`);
+      return {
+        success: true,
+        message: `Tool ${toolName} is not in action list but assume ok!`,
+      };
     }
 
     console.log("Processing directionTool with toolName:", toolName);
