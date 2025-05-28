@@ -75,12 +75,14 @@ idle_action: Dict[str, Any] = {"name": None, "sleep_time": 0}
 
 
 class ActionExecutor:
+
     def __init__(self) -> None:
         """Initialize the ActionExecutor with a queue and a consumer thread."""
         self.logger = logging.getLogger(__name__)
         self.action_queue: queue.Queue = queue.Queue()
         self.current_action: Dict[str, Any] = idle_action.copy()
         self.is_running: bool = False
+        self._immediate_stop_event = threading.Event()
         self.queue_lock = threading.Lock()
         self._stop_event = threading.Event()
         self.consumer_thread = threading.Thread(target=self._consumer, daemon=True)
@@ -88,27 +90,46 @@ class ActionExecutor:
 
     def _run_action(self, p1: str, p2: str) -> Optional[Dict[str, Any]]:
         """Send a request to execute an action."""
+        return self._send_request(
+            method="RunAction",
+            params=[p1, p2],
+            log_success_msg=f"Action run_action({p1}, {p2}) successful.",
+            log_error_msg=f"Error running action run_action({p1}, {p2}):",
+        )
+
+    def _run_stop_action(self) -> Optional[Dict[str, Any]]:
+        """Send a request to stop the current action group."""
+        return self._send_request(
+            method="StopActionGroup",
+            params=None,
+            log_success_msg="Action run_stop_action() successful.",
+            log_error_msg="Error running action run_stop_action():",
+        )
+
+    def _send_request(
+        self,
+        method: str,
+        params: Optional[list],
+        log_success_msg: str,
+        log_error_msg: str,
+    ) -> Optional[Dict[str, Any]]:
         headers = {"deviceid": "1732853986186"}
         data = {
             "id": "1732853986186",
             "jsonrpc": "2.0",
-            "method": "RunAction",
-            "params": [p1, p2],
+            "method": method,
         }
+        if params is not None:
+            data["params"] = params
         try:
             response = requests.post(
                 "http://localhost:9030/", headers=headers, json=data, timeout=0.5
             )
             response.raise_for_status()
-            self.logger.info(
-                "Action run_action(%s, %s) successful. Response: %s",
-                p1,
-                p2,
-                response.json(),
-            )
+            self.logger.info("%s Response: %s", log_success_msg, response.json())
             return response.json()
         except requests.exceptions.RequestException as e:
-            self.logger.error("Error running action run_action(%s, %s): %s", p1, p2, e)
+            self.logger.error("%s %s", log_error_msg, e)
             return None
 
     def _execute_action(self, action_item: Dict[str, Any]) -> None:
@@ -121,7 +142,15 @@ class ActionExecutor:
         }
         try:
             self._run_action(action["action"][0], action["action"][1])
-            time.sleep(action["sleep_time"])
+            elapsed = 0.0
+            while elapsed < action["sleep_time"]:
+                if self._immediate_stop_event.is_set():
+                    self.logger.info("Stopping action execution for %s", action_name)
+                    self._immediate_stop_event.clear()
+                    self._run_stop_action()
+                    break
+                time.sleep(0.1)
+                elapsed += 0.1
         except Exception as e:
             self.logger.error("Error executing action %s: %s", action_name, e)
         finally:
@@ -146,6 +175,16 @@ class ActionExecutor:
         time.sleep(5 - time.time() % 5)
         while not self._stop_event.is_set():
             try:
+                if self._immediate_stop_event.is_set():
+                    self.logger.info(
+                        "Immediate stop triggered, clearing queue and setting to idle."
+                    )
+                    self.clear_action_queue()
+                    self.current_action = idle_action.copy()
+                    self.is_running = False
+                    self._immediate_stop_event.clear()
+                    time.sleep(0.5)
+                    continue
                 time.sleep(1 - time.time() % 1)
                 action_item = self.action_queue.get(timeout=1)
                 self.is_running = True
@@ -160,10 +199,7 @@ class ActionExecutor:
         action_id = str(uuid4())
 
         if action_name == "stop":
-            self.clear_action_queue()
-            self.current_action = idle_action.copy()
-            with self.queue_lock:
-                self.action_queue.put({"id": action_id, "name": "stand"})
+            self.stop()  # Use improved stop logic
             return
 
         if action_name not in actions:
@@ -195,6 +231,17 @@ class ActionExecutor:
         }
 
     def stop(self) -> None:
-        """Stop the consumer thread gracefully."""
+        """Stop all actions immediately and clear the queue."""
+        self.logger.info(
+            "Immediate stop requested: clearing queue and interrupting current action."
+        )
+        self._immediate_stop_event.set()
+        self.clear_action_queue()
+        with self.queue_lock:
+            stand_id = str(uuid4())
+            self.action_queue.put({"id": stand_id, "name": "stand"})
+
+    def shutdown(self) -> None:
+        """Gracefully shutdown the consumer thread."""
         self._stop_event.set()
         self.consumer_thread.join()
