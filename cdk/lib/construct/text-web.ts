@@ -14,8 +14,12 @@ export class TextControlWebConstruct extends Construct {
   public readonly serviceUrl: string;
   private readonly database: Construct;
 
-  constructor(scope: Construct, id: string, props: TextControlWebConstructProps) {
-    super(scope, id);  
+  constructor(
+    scope: Construct,
+    id: string,
+    props: TextControlWebConstructProps
+  ) {
+    super(scope, id);
 
     const restApi = new RestApi(this, "TextControlWebApi", {
       restApiName: "TextControlWebApi",
@@ -23,22 +27,26 @@ export class TextControlWebConstruct extends Construct {
     });
 
     const flaskLambda = new lambda.Function(this, "TextControlLambda", {
-      code: lambda.Code.fromAsset(path.join(__dirname, "../../../text_control"), {
-        bundling: {
-          image: lambda.Runtime.PYTHON_3_13.bundlingImage,
-          command: [
-            "bash",
-            "-c",
-            "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output",
-          ],
-        },
-      }),
+      code: lambda.Code.fromAsset(
+        path.join(__dirname, "../../../text_control"),
+        {
+          exclude: ["venv"], // Exclude the venv folder from the deployment package
+          bundling: {
+            image: lambda.Runtime.PYTHON_3_13.bundlingImage,
+            command: [
+              "bash",
+              "-c",
+              "pip install -r requirements.txt -t /asset-output && cp -au . /asset-output",
+            ],
+          },
+        }
+      ),
       handler: "app.handler",
       timeout: Duration.seconds(30),
       runtime: lambda.Runtime.PYTHON_3_13,
       environment: {
         AWS_BEDROCK_REGION: "us-east-1",
-        ROBOT_TABLE : props.database.robotTable.tableName,
+        ROBOT_TABLE: props.database.robotTable.tableName,
       },
     });
 

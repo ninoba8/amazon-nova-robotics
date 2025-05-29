@@ -163,6 +163,7 @@
               robot.robot_name || "";
             document.getElementById("robot-context").value =
               robot.context || "";
+            window.scrollTo({ top: 0, behavior: "smooth" });
           });
       }
       document.getElementById("robot-form").onsubmit = async function (e) {
