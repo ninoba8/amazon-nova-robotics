@@ -14,7 +14,7 @@
     },
     "vscode": {
       "settings": {
-        "python.defaultInterpreterPath": "/workspaces/amazon-nova-robotic/robot_client/venv/bin/python",
+        "python.defaultInterpreterPath": "/workspaces/amazon-nova-robotic/robot_client/humanoid/venv/bin/python",
         "python.linting.enabled": true,
         "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
         "python.linting.flake8Enabled": true,
