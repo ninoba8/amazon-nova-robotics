@@ -92,6 +92,10 @@ def main():
         input_key = settings["input_key"].format(
             robot_name=robot_name, base_path=base_path
         )
+
+        input_ca = settings["input_ca"].format(
+            robot_name=robot_name, base_path=base_path
+        )
         input_endpoint = settings["input_endpoint"]
         input_client_id = settings["input_clientId"].format(
             robot_name=robot_name, base_path=base_path
@@ -113,6 +117,7 @@ def main():
             port=input_port,
             cert_filepath=input_cert,
             pri_key_filepath=input_key,
+            ca_filepath=input_ca,
             http_proxy_options=proxy_options,
             on_publish_received=on_publish_received,
             on_lifecycle_stopped=on_lifecycle_stopped,
