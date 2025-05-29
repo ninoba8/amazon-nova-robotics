@@ -10,7 +10,7 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const numberOfRobots = 7; // Number of robots
+    const numberOfRobots = 9; // Number of robots
     const thingNames = Array.from(
       { length: numberOfRobots },
       (_, i) => `robot_${i + 1}`
@@ -21,14 +21,15 @@ export class AmazonNovaRoboticCdkStack extends cdk.Stack {
 
     const databaseConstruct = new DatabaseConstruct(this, "DatabaseConstruct");
 
-    const webConstruct = new SpeechControlWebConstruct(this, "WebConstruct",{
+    const webConstruct = new SpeechControlWebConstruct(this, "WebConstruct", {
       database: databaseConstruct,
     });
 
     const textControlWebConstruct = new TextControlWebConstruct(
       this,
-      "TextControlWebConstruct",{
-      database: databaseConstruct,
+      "TextControlWebConstruct",
+      {
+        database: databaseConstruct,
       }
     );
 
