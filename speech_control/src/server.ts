@@ -166,9 +166,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("robot", async (data) => {
-      console.log("robot received:", data);
-      session.setupRobot(data);
-      socket.emit("robot received", data);
+      // Accept either a string or array from the client
+      let robots = Array.isArray(data) ? data : [data];
+      console.log("robot(s) received:", robots);
+      session.setupRobot(robots);
+      socket.emit("robot received", robots);
     });
 
     socket.on("audioStart", async (data) => {

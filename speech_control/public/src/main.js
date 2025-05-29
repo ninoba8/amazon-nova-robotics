@@ -1,5 +1,11 @@
+
 import { AudioPlayer } from './lib/play/AudioPlayer.js';
 import { ChatHistoryManager } from "./lib/util/ChatHistoryManager.js";
+import { setupRobotModal } from './robotModal.js';
+// Setup robot modal popup on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setupRobotModal();
+});
 
 // Connect to the server
 const socket = io();
@@ -44,12 +50,16 @@ let SYSTEM_PROMPT = "You are a friend. The user and you will engage in a spoken 
     "dialog exchanging the transcripts of a natural real-time conversation. Keep your responses short, " +
     "generally two or three sentences for chatty scenarios.";
 
-// Add event listener for robot selection
-let selectedRobot = 'robot_1'; // Default robot
 
+// Helper to get all selected robots as an array
+function getSelectedRobots() {
+    return Array.from(robotSelect.selectedOptions).map(opt => opt.value);
+}
+
+// Add event listener for robot selection (for debug/logging)
 robotSelect.addEventListener('change', (event) => {
-    selectedRobot = event.target.value;
-    console.log(`Selected robot: ${selectedRobot}`);
+    const selected = getSelectedRobots();
+    console.log(`Selected robots: ${selected.join(', ')}`);
 });
 
 // Initialize WebSocket audio
@@ -91,7 +101,8 @@ async function initializeSession() {
 
     try {
         // Send events in sequence 
-        socket.emit('robot', robotSelect.value);
+        const robots = getSelectedRobots();
+        socket.emit('robot', robots);
         await new Promise(resolve => setTimeout(resolve, 250));        
         socket.emit('promptStart');
         socket.emit('systemPrompt');
@@ -545,8 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const robotValue = params.robot;
         if (robotSelect.querySelector(`option[value="${robotValue}"]`)) {
             robotSelect.value = robotValue;
-            selectedRobot = robotValue;
-            console.log(`Auto-selected robot: ${selectedRobot} from URL parameter`);
+            console.log(`Auto-selected robot: ${robotValue} from URL parameter`);
             
             // Start streaming after a short delay
             setTimeout(() => {
@@ -561,7 +571,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 const queryParams = getQueryParams();
 if (queryParams.robot) {
     robotSelect.value = queryParams.robot;
-    selectedRobot = queryParams.robot;
-    console.log(`Auto-selected robot: ${selectedRobot}`);
+    console.log(`Auto-selected robot: ${queryParams.robot}`);
     initAudio();
 }

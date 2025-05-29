@@ -2,18 +2,23 @@ import { IoTPublisher } from "./iot";
 import { Actions, toolList } from "./consts";
 
 export class ToolProcessor {
-  private robot: string;
+  private robots: string[];
   private readonly iotPublisher: IoTPublisher;
 
   constructor() {
-    this.robot = "robot_1";
+    this.robots = ["robot_1"];
     this.iotPublisher = new IoTPublisher("us-east-1");
   }
-  setRobot(robot: string) {
-    this.robot = robot;
+  setRobot(robots: string[] | string) {
+    if (Array.isArray(robots)) {
+      this.robots = robots;
+    } else {
+      this.robots = [robots];
+    }
   }
   getRobot() {
-    return this.robot;
+    // For backward compatibility, return the first robot or 'robot_1'
+    return this.robots[0] || "robot_1";
   }
 
   public async processToolUse(
@@ -33,23 +38,18 @@ export class ToolProcessor {
     }
 
     console.log("Processing directionTool with toolName:", toolName);
-    if (this.robot === "all") {
-      Array.from({ length: 6 }, (_, i) => i + 1).map((i) => {
-        this.iotPublisher
-          .publishToRobot(
-            `robot_${i}/topic`,
-            JSON.stringify({ toolName: toolName })
-          )
-          .catch(console.error);
-      });
-    } else {
+    // If "all" is selected, send to all robots 1-7
+    let targetRobots = this.robots.includes("all")
+      ? Array.from({ length: 7 }, (_, i) => `robot_${i + 1}`)
+      : this.robots;
+    targetRobots.forEach((robotId) => {
       this.iotPublisher
         .publishToRobot(
-          this.robot + `/topic`,
+          `${robotId}/topic`,
           JSON.stringify({ toolName: toolName })
         )
         .catch(console.error);
-    }
+    });
 
     return {
       success: true,

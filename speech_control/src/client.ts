@@ -682,8 +682,8 @@ export class NovaSonicBidirectionalStreamClient {
    * Set the robot ID for the tool processor
    * @param robot - The robot ID to use for tool processing
    */
-  public setRobot(robot: string) {
-    this.toolProcessor.setRobot(robot);
+  public setRobot(robots: string[] | string) {
+    this.toolProcessor.setRobot(robots);
   }
   public async setupSystemPromptEvent(
     sessionId: string,
