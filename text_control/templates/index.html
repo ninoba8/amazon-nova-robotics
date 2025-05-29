@@ -9,63 +9,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <style>
-      body {
-        background-color: #f8f9fa;
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      }
-
-      #logo {
-        margin-bottom: 20px;
-      }
-
-      #chat-container {
-        max-width: 500px;
-        width: 100%;
-      }
-
-      #messages {
-        height: 300px;
-        overflow-y: auto;
-        background-color: #fff;
-        border: 1px solid #dee2e6;
-      }
-
-      .message {
-        padding: 10px 15px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-      }
-
-      .user-message {
-        background-color: #f0f7ff;
-        border-left: 3px solid #0d6efd;
-      }
-
-      .bot-message {
-        background-color: #f8f9fa;
-        border-left: 3px solid #6c757d;
-      }
-
-      .system-message {
-        background-color: #fff3cd;
-        border-left: 3px solid #ffc107;
-      }
-
-      #loading {
-        display: none;
-      }
-
-      .spinner-border {
-        width: 1.5rem;
-        height: 1.5rem;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/styles.css" />
   </head>
 
   <body>
@@ -74,12 +18,9 @@
         id="logo"
         src="https://www.hkiit.edu.hk/site/templates/images/HKIIT_Logo_bilingual-p-500.png"
         alt="HKIIT"
-        class="img-fluid mb-3"
-        style="max-width: 300px"
+        class="img-fluid mb-3 logo-img"
       />
-      <h2 class="mb-4 fw-bold">
-        雲端系統及數據中心管理高級文憑課程
-      </h2>
+      <h2 class="mb-4 fw-bold">雲端系統及數據中心管理高級文憑課程</h2>
 
       <div id="chat-container" class="card shadow mx-auto">
         <div class="card-header bg-primary text-white">
@@ -98,7 +39,7 @@
             <button
               id="send-button"
               class="btn btn-primary"
-              onclick="sendMessage()"
+              aria-label="Send message"
             >
               <i class="bi bi-send"></i> Send
             </button>
@@ -113,16 +54,71 @@
 
           <div class="form-group">
             <label for="robot-select" class="form-label">Select Robot:</label>
-            <select id="robot-select" class="form-select">
-              <option value="robot_1">Robot 1</option>
-              <option value="robot_2">Robot 2</option>
-              <option value="robot_3">Robot 3</option>
-              <option value="robot_4">Robot 4</option>
-              <option value="robot_5">Robot 5</option>
-              <option value="robot_6">Robot 6</option>
-              <option value="robot_7">Robot 7</option>
-              <option value="all">All</option>
-            </select>
+            <!-- Button trigger modal -->
+            <button
+              type="button"
+              class="btn btn-outline-secondary mb-2"
+              data-bs-toggle="modal"
+              data-bs-target="#robotSelectModal"
+            >
+              Select Robot(s)
+            </button>
+            <!-- Display selected robots summary -->
+            <div
+              id="selected-robots-summary"
+              class="mb-2 text-muted small"
+            ></div>
+
+            <!-- Modal -->
+            <div
+              class="modal fade"
+              id="robotSelectModal"
+              tabindex="-1"
+              aria-labelledby="robotSelectModalLabel"
+              aria-hidden="true"
+            >
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="robotSelectModalLabel">
+                      Select Robot(s)
+                    </h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                  <div class="modal-body">
+                    <select
+                      id="robot-select"
+                      class="form-select"
+                      multiple
+                      size="8"
+                    >
+                      <option value="robot_1">Robot 1</option>
+                      <option value="robot_2">Robot 2</option>
+                      <option value="robot_3">Robot 3</option>
+                      <option value="robot_4">Robot 4</option>
+                      <option value="robot_5">Robot 5</option>
+                      <option value="robot_6">Robot 6</option>
+                      <option value="robot_7">Robot 7</option>
+                      <option value="all">All</option>
+                    </select>
+                  </div>
+                  <div class="modal-footer">
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      data-bs-dismiss="modal"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -136,105 +132,6 @@
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-      // Flag to track if a request is in progress
-      let isRequestInProgress = false;
-
-      async function sendMessage() {
-        // Don't send if a request is already in progress or if input is empty
-        const userInput = document.getElementById("user-input");
-        if (isRequestInProgress || !userInput.value.trim()) {
-          return;
-        }
-
-        const robotSelect = document.getElementById("robot-select");
-        const message = userInput.value;
-        const selectedRobot = robotSelect.value;
-
-        // Set request in progress flag and show loading indicator
-        isRequestInProgress = true;
-        document.getElementById("loading").style.display = "block";
-        document.getElementById("send-button").disabled = true;
-        userInput.disabled = true;
-        robotSelect.disabled = true;
-
-        try {
-          let endPoint = window.location.href.includes("prod")
-            ? "/prod/chat"
-            : "/chat";
-
-          const response = await fetch(endPoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message,
-              robot: selectedRobot,
-              session_id: Math.floor(Math.random() * 1000000),
-            }),
-          });
-
-          const data = await response.json();
-          const messagesDiv = document.getElementById("messages");
-
-          // Add user message with Bootstrap styling
-          const userMessageElement = document.createElement("div");
-          userMessageElement.className = "message user-message mb-2";
-          userMessageElement.innerHTML = `<strong>You:</strong> ${message}`;
-          messagesDiv.appendChild(userMessageElement);
-
-          // Add bot message with Bootstrap styling
-          const botMessageElement = document.createElement("div");
-          botMessageElement.className = "message bot-message mb-2";
-          botMessageElement.innerHTML = `<strong>Bot:</strong> ${data.response}`;
-          messagesDiv.appendChild(botMessageElement);
-
-          messagesDiv.scrollTop = messagesDiv.scrollHeight;
-          userInput.value = "";
-        } catch (error) {
-          console.error("Error:", error);
-          const messagesDiv = document.getElementById("messages");
-
-          // Add user message with Bootstrap styling
-          const userMessageElement = document.createElement("div");
-          userMessageElement.className = "message user-message mb-2";
-          userMessageElement.innerHTML = `<strong>You:</strong> ${message}`;
-          messagesDiv.appendChild(userMessageElement);
-
-          // Add system error message with Bootstrap styling
-          const errorMessageElement = document.createElement("div");
-          errorMessageElement.className = "message system-message mb-2";
-          errorMessageElement.innerHTML = `<strong>System:</strong> Sorry, there was an error processing your request.`;
-          messagesDiv.appendChild(errorMessageElement);
-
-          messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        } finally {
-          // Reset UI state regardless of success or failure
-          isRequestInProgress = false;
-          document.getElementById("loading").style.display = "none";
-          document.getElementById("send-button").disabled = false;
-          userInput.disabled = false;
-          robotSelect.disabled = false;
-          userInput.focus();
-        }
-      }
-
-      // Add event listener for Enter key
-      document
-        .getElementById("user-input")
-        .addEventListener("keydown", function (event) {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            sendMessage();
-          }
-        });
-
-      // Initialize tooltips
-      document.addEventListener("DOMContentLoaded", function () {
-        // Add any Bootstrap initializations here if needed
-        // For example: var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-      });
-    </script>
+    <script src="/static/chat.js"></script>
   </body>
 </html>

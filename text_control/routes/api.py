@@ -17,11 +17,16 @@ api_bp = Blueprint("api", __name__)
 def chat():
     """Handle chat requests with Nova Chatbot integration"""
     user_message = request.json.get("message")
-    selected_robot = request.json.get("robot")
+    selected_robots = request.json.get("robots")
     session_id = request.json.get("session_id", str(uuid.uuid4()))
 
-    # Get response from Nova chatbot
-    response_data = get_chat_response(user_message, selected_robot, session_id)
+    # For backward compatibility, if robots is not a list, make it a list
+    if not isinstance(selected_robots, list):
+        selected_robots = [selected_robots] if selected_robots else []
+
+    # Get response from Nova chatbot (use first robot for context, or None)
+    context_robot = selected_robots[0] if selected_robots else None
+    response_data = get_chat_response(user_message, context_robot, session_id)
 
     if "error" in response_data:
         return jsonify(response_data), 500
@@ -32,10 +37,20 @@ def chat():
 
     print(f"Actions to execute: {actions_to_execute}")
 
-    # Execute actions if any were found
-    if actions_to_execute:
-        execution_results = process_actions(actions_to_execute, selected_robot)
-        response_data["actions_executed"] = execution_results
+    # Handle 'all' as mutually exclusive in backend as well
+    actions_executed = []
+    robots_to_use = selected_robots
+    if 'all' in selected_robots:
+        # If 'all' is selected, ignore other selections and send to all robots 1-7
+        robots_to_use = ['all']
+
+    for robot in robots_to_use:
+        if actions_to_execute:
+            execution_results = process_actions(actions_to_execute, robot)
+            actions_executed.append({"robot": robot, "results": execution_results})
+
+    if actions_executed:
+        response_data["actions_executed"] = actions_executed
 
     return jsonify(response_data)
 

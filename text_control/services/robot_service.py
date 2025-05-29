@@ -18,10 +18,11 @@ iot_client = boto3.client(
 )
 
 
+
 def execute_robot_action(message: str, selected_robot: str) -> bool:
     """Execute a robot action by publishing to the appropriate IoT topic"""
     if selected_robot == "all":
-
+        # If 'all' is selected, publish to all robots 1-7
         def publish_to_robot(robot_id):
             topic = f"robot_{robot_id}/topic"
             try:
@@ -38,8 +39,8 @@ def execute_robot_action(message: str, selected_robot: str) -> bool:
                 return False
 
         with ThreadPoolExecutor() as executor:
-            futures = list(executor.map(publish_to_robot, range(1, 7)))
-            return all(futures)  # Return True if all succeeded, False otherwise
+            futures = list(executor.map(publish_to_robot, range(1, 8)))
+            return all(futures)
     else:
         topic = f"{selected_robot}/topic"
         try:
