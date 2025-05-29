@@ -59,7 +59,17 @@ function getSelectedRobots() {
 // Add event listener for robot selection (for debug/logging)
 robotSelect.addEventListener('change', (event) => {
     const selected = getSelectedRobots();
-    console.log(`Selected robots: ${selected.join(', ')}`);
+    // If 'all' is selected, deselect all others
+    if (selected.includes('all')) {
+        Array.from(robotSelect.options).forEach(opt => {
+            if (opt.value !== 'all') opt.selected = false;
+        });
+    } else {
+        // If any other is selected, deselect 'all'
+        const allOpt = Array.from(robotSelect.options).find(opt => opt.value === 'all');
+        if (allOpt) allOpt.selected = false;
+    }
+    console.log(`Selected robots: ${getSelectedRobots().join(', ')}`);
 });
 
 // Initialize WebSocket audio

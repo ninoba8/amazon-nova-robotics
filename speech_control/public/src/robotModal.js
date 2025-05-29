@@ -34,12 +34,29 @@ export function setupRobotModal() {
   const robotSelector = document.getElementById('robot-selector');
   if (robotSelector) robotSelector.style.display = 'none';
 
+
   // Modal open/close logic
   openBtn.onclick = () => { modal.style.display = 'block'; };
   document.getElementById('close-robot-modal').onclick = () => { modal.style.display = 'none'; };
+
+  // Custom logic for All selection in modal
+  const modalSelect = document.getElementById('robot-select-modal');
+  modalSelect.addEventListener('change', (event) => {
+    const selected = Array.from(modalSelect.selectedOptions).map(opt => opt.value);
+    if (selected.includes('all')) {
+      // If 'all' is selected, deselect all others
+      Array.from(modalSelect.options).forEach(opt => {
+        if (opt.value !== 'all') opt.selected = false;
+      });
+    } else {
+      // If any other is selected, deselect 'all'
+      const allOpt = Array.from(modalSelect.options).find(opt => opt.value === 'all');
+      if (allOpt) allOpt.selected = false;
+    }
+  });
+
   document.getElementById('robot-modal-save').onclick = () => {
     // Copy selected options to the hidden select
-    const modalSelect = document.getElementById('robot-select-modal');
     const mainSelect = document.getElementById('robot-select');
     Array.from(mainSelect.options).forEach(opt => opt.selected = false);
     Array.from(modalSelect.selectedOptions).forEach(opt => {
