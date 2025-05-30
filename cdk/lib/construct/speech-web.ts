@@ -10,13 +10,15 @@ export interface SpeechControlWebConstructProps {
   readonly database: DatabaseConstruct;
 }
 
-
 export class SpeechControlWebConstruct extends Construct {
   public readonly serviceUrl: string;
 
-  constructor(scope: Construct, id: string, props: SpeechControlWebConstructProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: SpeechControlWebConstructProps
+  ) {
     super(scope, id);
-
 
     const imageAsset = new assets.DockerImageAsset(this, "ImageAssets", {
       directory: path.join(__dirname, "../../../speech_control"),
@@ -50,7 +52,7 @@ export class SpeechControlWebConstruct extends Construct {
           environmentVariables: {
             IsInCloud: "yes",
             AWS_BEDROCK_REGION: "us-east-1",
-            ROBOT_TABLE: props.database.robotTable.tableName,
+            RobotTable: props.database.robotTable.tableName,
           },
         },
         asset: imageAsset,

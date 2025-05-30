@@ -1,5 +1,5 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
 export interface RobotData {
   id: string;
@@ -15,7 +15,7 @@ export class Database {
     // Initialize DynamoDB client
     this.dynamoClient = new DynamoDB({});
     this.robotTable = DynamoDBDocument.from(this.dynamoClient);
-    this.tableName = process.env.ROBOT_TABLE || "ROBOT_TABLE";
+    this.tableName = process.env.RobotTable || "";
   }
 
   /**
@@ -24,10 +24,9 @@ export class Database {
   async getRobot(robotId: string): Promise<RobotData | null> {
     const response = await this.robotTable.get({
       TableName: this.tableName,
-      Key: { id: robotId }
+      Key: { id: robotId },
     });
-    
-    return response.Item as RobotData || null;
-  }
 
+    return (response.Item as RobotData) || null;
+  }
 }

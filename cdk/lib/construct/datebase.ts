@@ -24,6 +24,7 @@ export class DatabaseConstruct extends Construct {
     });
 
     new cdk.CfnOutput(this, "RobotTableName", {
+      key: "RobotTable",
       value: this.robotTable.tableName,
       description: "The name of the DynamoDB table for robots",
     });

@@ -2,7 +2,7 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Key
 
-ROBOT_TABLE = os.getenv("ROBOT_TABLE", "RobotTable")
+ROBOT_TABLE = os.getenv("RobotTable", "")
 dynamodb = boto3.resource("dynamodb")
 robot_table = dynamodb.Table(ROBOT_TABLE)
 
