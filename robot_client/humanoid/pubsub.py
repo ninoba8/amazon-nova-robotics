@@ -140,6 +140,7 @@ def main():
             settings["aws_secret_access_key"] = os.environ.get(
                 "IoTRobotSecretAccessKey", ""
             )
+        print("Settings loaded successfully:", json.dumps(settings, indent=2))
     
         message_topic = input_topic
 
