@@ -3,6 +3,7 @@
 Robotic with AWS IoT, AWS Bedrock, and Amazon Nova.
 
 ### Tech Blog
+
 [Voice-Controlled Humanoid Robots Using Amazon Nova Sonic and AWS IoT](https://community.aws/content/2vqYxQLMJ8dYsL9kJnfPj0wIps3/voice-controlled-humanoid-robots-using-amazon-nova-sonic-and-aws-iot)
 
 ## Update CDK and all packages for CodeSpaces
@@ -38,7 +39,6 @@ Default region name [None]: us-east-1
 
 Default output format [None]: json
 
-
 # Server side Deployment
 
 ## Use CDK bootstrap
@@ -51,13 +51,22 @@ cdk bootstrap
 ## Deploy Stacks
 
 ```
-cdk deploy --require-approval never
+cdk deploy --require-approval never --outputs-file output.json
 ```
 
 ## Destory Stacks
 
 ```
 cdk destroy --require-approval never
+```
+
+## Load Stack Output as environment variable
+
+For load developement, you need to set them.
+
+```
+sudo apt update && sudo apt install -y jq
+source /workspaces/amazon-nova-robotics/load_cdkstack_env.sh
 ```
 
 ## Download AWS IoT Certifications

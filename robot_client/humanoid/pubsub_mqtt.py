@@ -8,7 +8,7 @@ from concurrent.futures import Future
 
 import yaml
 from action_executor import ActionExecutor
-from awscrt import http, mqtt5, auth
+from awscrt import http, mqtt5
 from awsiot import mqtt5_client_builder
 
 TIMEOUT = 100
@@ -23,6 +23,7 @@ future_stopped = Future()
 future_connection_success = Future()
 
 executor = ActionExecutor()
+
 
 def on_publish_received(publish_packet_data):
     try:
@@ -45,10 +46,12 @@ def on_publish_received(publish_packet_data):
     except Exception as e:
         logging.error("Exception in on_publish_received: %s", e)
 
+
 def on_lifecycle_stopped(lifecycle_stopped_data: mqtt5.LifecycleStoppedData):
     logging.info("Lifecycle Stopped")
     if not future_stopped.done():
         future_stopped.set_result(lifecycle_stopped_data)
+
 
 def on_lifecycle_connection_success(
     lifecycle_connect_success_data: mqtt5.LifecycleConnectSuccessData,
@@ -57,12 +60,14 @@ def on_lifecycle_connection_success(
     if not future_connection_success.done():
         future_connection_success.set_result(lifecycle_connect_success_data)
 
+
 def on_lifecycle_connection_failure(
     lifecycle_connection_failure: mqtt5.LifecycleConnectFailureData,
 ):
     logging.error(
         "Lifecycle Connection Failure: %s", lifecycle_connection_failure.exception
     )
+
 
 def load_settings(settings_path: str) -> dict:
     try:
@@ -71,6 +76,7 @@ def load_settings(settings_path: str) -> dict:
     except Exception as e:
         logging.error("Failed to load settings: %s", e)
         raise
+
 
 def main():
     try:
@@ -86,6 +92,7 @@ def main():
         input_key = settings["input_key"].format(
             robot_name=robot_name, base_path=base_path
         )
+
         input_ca = settings["input_ca"].format(
             robot_name=robot_name, base_path=base_path
         )
@@ -93,32 +100,23 @@ def main():
         input_client_id = settings["input_clientId"].format(
             robot_name=robot_name, base_path=base_path
         )
-        if not settings.get("aws_access_key_id"):
-            settings["aws_access_key_id"] = os.environ.get("IoTRobotAccessKeyId", "")
-        if not settings.get("aws_secret_access_key"):
-            settings["aws_secret_access_key"] = os.environ.get(
-                "IoTRobotSecretAccessKey", ""
-            )
-        input_port = 443  # WebSockets uses port 443
+        input_port = 8883
         input_proxy_host = None
         input_proxy_port = 0
 
-        logging.info("Starting MQTT5 PubSub Client over WebSockets")
+        logging.info("Starting MQTT5 PubSub Client")
         message_topic = input_topic
         proxy_options = None
         if input_proxy_host and input_proxy_port != 0:
             proxy_options = http.HttpProxyOptions(
                 host_name=input_proxy_host, port=input_proxy_port
             )
-        credentials_provider = auth.AwsCredentialsProvider.new_static(
-            access_key_id=settings["aws_access_key_id"],
-            secret_access_key=settings["aws_secret_access_key"],            
-        )
 
-        client = mqtt5_client_builder.websockets_with_default_aws_signing(
+        client = mqtt5_client_builder.mtls_from_path(
             endpoint=input_endpoint,
-            region=settings.get("region", "us-east-1"),
-            credentials_provider=credentials_provider,
+            port=input_port,
+            cert_filepath=input_cert,
+            pri_key_filepath=input_key,
             ca_filepath=input_ca,
             http_proxy_options=proxy_options,
             on_publish_received=on_publish_received,
@@ -128,7 +126,7 @@ def main():
             client_id=input_client_id,
             keep_alive_interval_sec=5,
         )
-        logging.info("MQTT5 WebSocket Client Created")
+        logging.info("MQTT5 Client Created")
 
         try:
             logging.info(
