@@ -38,9 +38,9 @@ export class ToolProcessor {
     }
 
     console.log("Processing directionTool with toolName:", toolName);
-    // If "all" is selected, send to all robots 1-7
+    // If "all" is selected, send to all robots 1-9
     let targetRobots = this.robots.includes("all")
-      ? Array.from({ length: 7 }, (_, i) => `robot_${i + 1}`)
+      ? Array.from({ length: 9 }, (_, i) => `robot_${i + 1}`)
       : this.robots;
     targetRobots.forEach((robotId) => {
       this.iotPublisher

@@ -39,7 +39,7 @@ def execute_robot_action(message: str, selected_robot: str) -> bool:
                 return False
 
         with ThreadPoolExecutor() as executor:
-            futures = list(executor.map(publish_to_robot, range(1, 8)))
+            futures = list(executor.map(publish_to_robot, range(1, 10)))
             return all(futures)
     else:
         topic = f"{selected_robot}/topic"

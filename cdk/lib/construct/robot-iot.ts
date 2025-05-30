@@ -53,19 +53,17 @@ export class RoboticConstruct extends Construct {
         resources: [`arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:*`],
       })
     );
-    // Attach fine-grained IoT permissions for each device
-    for (const thingName of props.thingNames) {
-      iotUser.addToPolicy(
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ["iot:Publish", "iot:Subscribe", "iot:Receive"],
-          resources: [
-            `arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:topic/device/${thingName}/*`,
-            `arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:topicfilter/device/${thingName}/*`,
-          ],
-        })
-      );
-    }
+    iotUser.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["iot:Publish", "iot:Subscribe", "iot:Receive"],
+        resources: [
+          `arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:thing/*`,
+          `arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:topic/device/*`,
+          `arn:aws:iot:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:topicfilter/device/*`,
+        ],
+      })
+    );
 
     // Create access key for the IoT user
     const iotAccessKey = new iam.CfnAccessKey(this, "IoTRobotUserAccessKey", {

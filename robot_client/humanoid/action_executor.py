@@ -100,8 +100,8 @@ class ActionExecutor:
     def _run_stop_action(self) -> Optional[Dict[str, Any]]:
         """Send a request to stop the current action group."""
         return self._send_request(
-            method="StopActionGroup",
-            params=None,
+            method="StopBusServo",
+            params=["stopAction"],
             log_success_msg="Action run_stop_action() successful.",
             log_error_msg="Error running action run_stop_action():",
         )
