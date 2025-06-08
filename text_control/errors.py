@@ -1,10 +1,11 @@
 """
 Error handlers for the Flask application
 """
+
 from flask import Blueprint, jsonify
 
 # Create a blueprint for the error handlers
-errors_bp = Blueprint('errors', __name__)
+errors_bp = Blueprint("errors", __name__)
 
 
 @errors_bp.app_errorhandler(400)

@@ -1,6 +1,7 @@
 """
 Check if required packages are installed
 """
+
 import importlib.util
 import sys
 
@@ -17,18 +18,18 @@ def check_required_packages():
         "boto3",
         "flask",
     ]
-    
+
     missing_packages = []
-    
+
     for package in required_packages:
         if not is_package_installed(package):
             missing_packages.append(package)
-    
+
     if missing_packages:
         print(f"Missing required packages: {', '.join(missing_packages)}")
         print("Please install them using: pip install -r requirements.txt")
         return False
-    
+
     return True
 
 

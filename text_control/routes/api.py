@@ -40,9 +40,9 @@ def chat():
     # Handle 'all' as mutually exclusive in backend as well
     actions_executed = []
     robots_to_use = selected_robots
-    if 'all' in selected_robots:
+    if "all" in selected_robots:
         # If 'all' is selected, ignore other selections and send to all robots 1-7
-        robots_to_use = ['all']
+        robots_to_use = ["all"]
 
     for robot in robots_to_use:
         if actions_to_execute:
@@ -90,3 +90,24 @@ def robot_update(robot_id):
 def robot_delete(robot_id):
     delete_robot(robot_id)
     return jsonify({"deleted": True})
+
+
+@api_bp.route("/run_action/<robot_id>", methods=["GET", "POST"])
+def run_action(robot_id):
+    """Run process_actions with provided action and robot"""
+    data = request.json
+    robot = robot_id or data.get("robot")
+    method = data.get("method")
+    params = data.get("params")
+
+    if not method or not params or not robot:
+        return jsonify({"error": "Missing robot or method or params."}), 400
+
+    if method == "RunAction":
+        action = params[0]
+        results = process_actions([action], robot)
+        return jsonify({"results": results})
+    elif method == "stopAction":
+        results = process_actions(["stop"], robot)
+        return jsonify({"results": results})
+    return jsonify({"error": "Invalid method"}), 400

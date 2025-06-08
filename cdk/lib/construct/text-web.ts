@@ -30,7 +30,7 @@ export class TextControlWebConstruct extends Construct {
       code: lambda.Code.fromAsset(
         path.join(__dirname, "../../../text_control"),
         {
-          exclude: ["venv"], // Exclude the venv folder from the deployment package
+          exclude: ["venv", "**/__pycache__"], // Exclude venv and all __pycache__ folders
           bundling: {
             image: lambda.Runtime.PYTHON_3_13.bundlingImage,
             command: [

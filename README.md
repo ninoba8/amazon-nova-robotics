@@ -60,9 +60,9 @@ cdk deploy --require-approval never --outputs-file output.json
 cdk destroy --require-approval never
 ```
 
-## Load Stack Output as environment variable
+## Local Stack Output as environment variable
 
-For load developement, you need to set them.
+For local developement, you need to set them.
 
 ```
 sudo apt update && sudo apt install -y jq

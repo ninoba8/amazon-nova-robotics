@@ -7,7 +7,6 @@ from time import sleep
 from typing import Any, Dict, List
 
 import boto3
-import config
 from botocore.config import Config
 from models.actions import ACTIONS
 
@@ -16,7 +15,6 @@ iot_client = boto3.client(
     "iot-data",
     config=Config(retries={"max_attempts": 3, "mode": "standard"}),
 )
-
 
 
 def execute_robot_action(message: str, selected_robot: str) -> bool:

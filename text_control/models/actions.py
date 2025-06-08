@@ -1,7 +1,8 @@
 """
 Robot actions module - Contains the available robot actions with metadata
 """
-from typing import Dict, Any
+
+from typing import Any, Dict
 
 # List of available robot actions with metadata
 ACTIONS: Dict[str, Dict[str, Any]] = {
@@ -64,9 +65,11 @@ ACTIONS: Dict[str, Dict[str, Any]] = {
     "wing_chun": {"sleep_time": 2, "action": ["15", "1"], "name": "wing_chun"},
 }
 
+
 def get_available_actions():
     """Return a list of available action names"""
     return list(ACTIONS.keys())
+
 
 def get_action_metadata(action_name: str) -> Dict[str, Any]:
     """Return metadata for a specific action"""

@@ -1,6 +1,7 @@
 """
 Configuration settings for the application
 """
+
 import os
 
 # AWS Bedrock settings

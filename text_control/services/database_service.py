@@ -1,12 +1,13 @@
 """
 Database service layer - Provides higher-level database operations
 """
-from typing import Dict, List, Any, Optional
 
-from database import get_robot as db_get_robot
-from database import upsert_robot as db_upsert_robot
+from typing import Any, Dict, List, Optional
+
 from database import delete_robot as db_delete_robot
+from database import get_robot as db_get_robot
 from database import list_robots as db_list_robots
+from database import upsert_robot as db_upsert_robot
 
 
 def get_robot(robot_id: str) -> Optional[Dict[str, Any]]:
@@ -21,12 +22,12 @@ def get_robot(robot_id: str) -> Optional[Dict[str, Any]]:
 def upsert_robot(robot_id: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """Create or update a robot with validation"""
     required_fields = ["robot_name"]
-    
+
     # Ensure required fields are present
     for field in required_fields:
         if field not in data:
             data[field] = "Unknown"  # Set default value
-    
+
     return db_upsert_robot(robot_id, data)
 
 
