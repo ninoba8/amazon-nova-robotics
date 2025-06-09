@@ -98,16 +98,18 @@ def run_action(robot_id):
     data = request.json
     robot = robot_id or data.get("robot")
     method = data.get("method")
-    params = data.get("params")
+    action = data.get("action")
 
-    if not method or not params or not robot:
+    print(f"Running action for robot: {robot}, method: {method}, action: {action}")
+    print(f"Data received: {data}")
+
+    if not method or not action or not robot:
         return jsonify({"error": "Missing robot or method or params."}), 400
 
     if method == "RunAction":
-        action = params[0]
         results = process_actions([action], robot)
         return jsonify({"results": results})
-    elif method == "stopAction":
+    if method == "StopAction":
         results = process_actions(["stop"], robot)
         return jsonify({"results": results})
     return jsonify({"error": "Invalid method"}), 400
