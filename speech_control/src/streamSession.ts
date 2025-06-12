@@ -42,7 +42,7 @@ export class StreamSession {
   }
 
   public setupRobot(robots: string[] | string): void {
-    this.client.setRobot(robots);
+    this.client.setRobot(this.sessionId, robots);
   }
 
   public async setupStartAudio(

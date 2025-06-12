@@ -1,4 +1,7 @@
-import { IoTDataPlaneClient, PublishCommand } from "@aws-sdk/client-iot-data-plane";
+import {
+  IoTDataPlaneClient,
+  PublishCommand,
+} from "@aws-sdk/client-iot-data-plane";
 
 export class IoTPublisher {
   private client: IoTDataPlaneClient;
@@ -15,7 +18,9 @@ export class IoTPublisher {
         qos: 1,
       });
       await this.client.send(command);
-      console.log(`Message published to topic: ${topic}`);
+      console.log(
+        `Message published to topic: ${topic} with message: ${message}`
+      );
     } catch (error) {
       console.error(`Failed to publish message: ${error}`);
       throw error;

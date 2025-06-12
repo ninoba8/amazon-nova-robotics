@@ -60,7 +60,7 @@ interface SessionData {
   isPromptStartSent: boolean;
   isAudioContentStartSent: boolean;
   audioContentId: string;
-  robot: string;
+  robots: string[];
 }
 
 export class NovaSonicBidirectionalStreamClient {
@@ -153,7 +153,7 @@ export class NovaSonicBidirectionalStreamClient {
       isPromptStartSent: false,
       isAudioContentStartSent: false,
       audioContentId: randomUUID(),
-      robot: "robot_1",
+      robots: ["robot_1"],
     };
 
     this.activeSessions.set(sessionId, session);
@@ -580,8 +580,10 @@ export class NovaSonicBidirectionalStreamClient {
 
     console.log("calling tooluse");
     console.log("tool use content : ", session.toolUseContent);
+    const robots = session.robots || ["robot_1"];
     // function calling
     const toolResult = await this.toolProcessor.processToolUse(
+      robots,
       session.toolName,
       session.toolUseContent
     );
@@ -636,30 +638,35 @@ export class NovaSonicBidirectionalStreamClient {
   }
   public setupPromptStartEvent(sessionId: string): void {
     console.log(`Setting up prompt start event for session ${sessionId}...`);
-    const session = this.activeSessions.get(sessionId);
-    if (!session) return;
+    const sessionDataPrompt = this.activeSessions.get(sessionId);
+    if (!sessionDataPrompt) return;
 
-    const robot_id = this.toolProcessor.getRobot();
-    // Determine voiceId based on robot_id
+    // Use session.robots if available, fallback to session.robot
+    const robotIdPrompt =
+      (sessionDataPrompt as any).robots &&
+      (sessionDataPrompt as any).robots.length > 0
+        ? (sessionDataPrompt as any).robots[0]
+        : "robot_1";
+    // Determine voiceId based on robotId
     let voiceId = "matthew";
-    if (robot_id) {
-      if (robot_id === "all") {
+    if (robotIdPrompt) {
+      if (robotIdPrompt === "all") {
         voiceId = "tiffany";
       } else {
-        const lastChar = robot_id.slice(-1);
+        const lastChar = robotIdPrompt.slice(-1);
         if (!isNaN(Number(lastChar)) && Number(lastChar) % 2 === 1) {
           voiceId = "tiffany";
         }
       }
     }
     const audioConfig = { ...DefaultAudioOutputConfiguration, voiceId };
-    console.log(`${robot_id} using voice ID: ${voiceId}`);
+    console.log(`${robotIdPrompt} using voice ID: ${voiceId}`);
 
     // Prompt start event
     this.addEventToSessionQueue(sessionId, {
       event: {
         promptStart: {
-          promptName: session.promptName,
+          promptName: sessionDataPrompt.promptName,
           textOutputConfiguration: {
             mediaType: "text/plain",
           },
@@ -676,14 +683,22 @@ export class NovaSonicBidirectionalStreamClient {
         },
       },
     });
-    session.isPromptStartSent = true;
+    sessionDataPrompt.isPromptStartSent = true;
   }
   /**
-   * Set the robot ID for the tool processor
-   * @param robot - The robot ID to use for tool processing
+   * Set the robot ID(s) for a specific session
+   * @param sessionId - The session to set the robot(s) for
+   * @param robots - The robot ID(s) to use for tool processing
    */
-  public setRobot(robots: string[] | string) {
-    this.toolProcessor.setRobot(robots);
+  public setRobot(sessionId: string, robots: string[] | string) {
+    const session = this.activeSessions.get(sessionId);
+    if (!session) return;
+    if (Array.isArray(robots)) {
+      session.robots = robots; // Store first robot for compatibility
+      (session as any).robots = robots;
+    } else {
+      session.robots = [robots];
+    }
   }
   public async setupSystemPromptEvent(
     sessionId: string,
@@ -692,8 +707,13 @@ export class NovaSonicBidirectionalStreamClient {
   ): Promise<void> {
     console.log(`Setting up systemPrompt events for session ${sessionId}...`);
 
-    const robot_id = this.toolProcessor.getRobot();
-    const context = await this.database.getRobot(robot_id);
+    const session = this.activeSessions.get(sessionId);
+    if (!session) return;
+    const robotId =
+      (session as any).robots && (session as any).robots.length > 0
+        ? (session as any).robots[0]
+        : "robot_1";
+    const context = await this.database.getRobot(robotId);
     let systemPrompt = systemPromptContent;
     if (context) {
       const name = context.robot_name;
@@ -715,14 +735,32 @@ export class NovaSonicBidirectionalStreamClient {
     }
 
     console.log(`Using system prompt content: ${systemPrompt}`);
-    const session = this.activeSessions.get(sessionId);
-    if (!session) return;
+    const sessionDataSys = this.activeSessions.get(sessionId);
+    if (!sessionDataSys) return;
+    const robotIdSys =
+      (sessionDataSys as any).robots &&
+      (sessionDataSys as any).robots.length > 0
+        ? (sessionDataSys as any).robots[0]
+        : "robot_1";
+    const robotContextSys = await this.database.getRobot(robotIdSys);
+    let sysPrompt = systemPromptContent;
+    if (robotContextSys) {
+      const name = robotContextSys.robot_name;
+      const background = robotContextSys.context;
+      sysPrompt = systemPromptContent.replace(
+        "<background></background>",
+        `<background>\n        Your Name: ${name}\n        Background: ${background}\n        </background>\n         `
+      );
+    } else {
+      sysPrompt = systemPromptContent.replace("<background></background>", "");
+    }
+    console.log(`Using system prompt content: ${sysPrompt}`);
     // Text content start
     const textPromptID = randomUUID();
     this.addEventToSessionQueue(sessionId, {
       event: {
         contentStart: {
-          promptName: session.promptName,
+          promptName: sessionDataSys.promptName,
           contentName: textPromptID,
           type: "TEXT",
           interactive: true,
@@ -731,23 +769,21 @@ export class NovaSonicBidirectionalStreamClient {
         },
       },
     });
-
     // Text input content
     this.addEventToSessionQueue(sessionId, {
       event: {
         textInput: {
-          promptName: session.promptName,
+          promptName: sessionDataSys.promptName,
           contentName: textPromptID,
-          content: systemPrompt,
+          content: sysPrompt,
         },
       },
     });
-
     // Text content end
     this.addEventToSessionQueue(sessionId, {
       event: {
         contentEnd: {
-          promptName: session.promptName,
+          promptName: sessionDataSys.promptName,
           contentName: textPromptID,
         },
       },
