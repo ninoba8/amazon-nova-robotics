@@ -90,6 +90,14 @@ class ActionExecutor:
 
     def _run_action(self, p1: str, p2: str) -> Optional[Dict[str, Any]]:
         """Send a request to execute an action."""
+
+        self._send_to_simulator(
+            action_name=p1,
+            robot_id="robot1",
+            log_success_msg=f"Action run_action({p1}, {p2}) sent to simulator.",
+            log_error_msg=f"Error sending action run_action({p1}, {p2}) to simulator:",
+        )
+
         return self._send_request(
             method="RunAction",
             params=[p1, p2],
@@ -245,3 +253,57 @@ class ActionExecutor:
         """Gracefully shutdown the consumer thread."""
         self._stop_event.set()
         self.consumer_thread.join()
+
+    def _send_to_simulator(
+        self,
+        action_name: str,
+        robot_id: str,
+        log_success_msg: str = None,
+        log_error_msg: str = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Send an action command to the robot simulator.
+
+        Args:
+            action_name: The name of the action to execute
+            robot_id: The ID of the robot to control
+            session_key: The session key for authentication
+            simulator_base_url: The base URL of the simulator (default: http://localhost:5000)
+            log_success_msg: Message to log on successful API call
+            log_error_msg: Message to log on failed API call
+
+        Returns:
+            Optional response data from the simulator API call
+        """
+
+        if log_success_msg is None:
+            log_success_msg = (
+                f"Simulator action {action_name} for robot {robot_id} successful."
+            )
+        if log_error_msg is None:
+            log_error_msg = (
+                f"Error sending action {action_name} to simulator for robot {robot_id}:"
+            )
+
+        # Construct the URL in the format:
+        url = f"https://humanoid-robot-simulator-74gfpibg5q-uc.a.run.app/run_action/{robot_id}?session_key=robotshow"
+
+        # Prepare the payload in the expected format: {"action": "bow"}
+        payload = {"action": action_name}
+
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=3.0,
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            resp_json = response.json()
+            self.logger.info(
+                "%s - %s Response: %s", robot_id, log_success_msg, resp_json
+            )
+            return resp_json
+        except requests.exceptions.RequestException as e:
+            self.logger.error("%s %s", log_error_msg, e)
+            return None
