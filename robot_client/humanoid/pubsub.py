@@ -3,14 +3,14 @@
 
 import json
 import logging
+import os
 import threading
 from concurrent.futures import Future
 
 import yaml
 from action_executor import ActionExecutor
-from awscrt import http, mqtt5, io, auth
+from awscrt import auth, http, io, mqtt5
 from awsiot import mqtt5_client_builder
-import os
 
 TIMEOUT = 10
 
@@ -22,8 +22,6 @@ logging.basicConfig(
 received_all_event = threading.Event()
 future_stopped = Future()
 future_connection_success = Future()
-
-executor = ActionExecutor()
 
 
 def on_publish_received(publish_packet_data):
@@ -69,6 +67,7 @@ def on_lifecycle_connection_failure(
         "Lifecycle Connection Failure: %s", lifecycle_connection_failure.exception
     )
 
+
 def load_settings(settings_path: str) -> dict:
     try:
         with open(settings_path, "r", encoding="utf-8") as file:
@@ -76,6 +75,7 @@ def load_settings(settings_path: str) -> dict:
     except Exception as e:
         logging.error("Failed to load settings: %s", e)
         raise
+
 
 def build_mqtt_client(settings, use_websocket=False):
     # Common client args
@@ -103,7 +103,7 @@ def build_mqtt_client(settings, use_websocket=False):
         region = settings.get("region", "us-east-1")
         credentials_provider = auth.AwsCredentialsProvider.new_static(
             access_key_id=settings["aws_access_key_id"],
-            secret_access_key=settings["aws_secret_access_key"],            
+            secret_access_key=settings["aws_secret_access_key"],
         )
         return mqtt5_client_builder.websockets_with_default_aws_signing(
             region=region,
@@ -112,6 +112,15 @@ def build_mqtt_client(settings, use_websocket=False):
             port=443,
             **client_args
         )
+
+
+settings = load_settings("settings.yaml")
+robot_name = settings["robot_name"]
+simulator_endpoint = settings.get("simulator_endpoint", "")
+session_key = settings.get("session_key", "")
+
+executor = ActionExecutor(robot_name, simulator_endpoint, session_key)
+
 
 def main():
     global future_connection_success
@@ -141,7 +150,7 @@ def main():
                 "IoTRobotSecretAccessKey", ""
             )
         print("Settings loaded successfully:", json.dumps(settings, indent=2))
-    
+
         message_topic = input_topic
 
         client = None
@@ -214,6 +223,7 @@ def main():
         except Exception as e:
             logging.warning("Exception waiting for client stop: %s", e)
         logging.info("Client Stopped!")
+
 
 if __name__ == "__main__":
     main()

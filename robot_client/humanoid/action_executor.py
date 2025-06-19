@@ -76,8 +76,13 @@ idle_action: Dict[str, Any] = {"name": None, "sleep_time": 0}
 
 class ActionExecutor:
 
-    def __init__(self) -> None:
+    def __init__(
+        self, robot_name: str, simulator_endpoint: str, session_key: str
+    ) -> None:
         """Initialize the ActionExecutor with a queue and a consumer thread."""
+        self.robot_name = robot_name
+        self.simulator_endpoint = simulator_endpoint
+        self.session_key = session_key
         self.logger = logging.getLogger(__name__)
         self.action_queue: queue.Queue = queue.Queue()
         self.current_action: Dict[str, Any] = idle_action.copy()
@@ -88,14 +93,15 @@ class ActionExecutor:
         self.consumer_thread = threading.Thread(target=self._consumer, daemon=True)
         self.consumer_thread.start()
 
-    def _run_action(self, p1: str, p2: str) -> Optional[Dict[str, Any]]:
+    def _run_action(
+        self, action_name: str, p1: str, p2: str
+    ) -> Optional[Dict[str, Any]]:
         """Send a request to execute an action."""
 
         self._send_to_simulator(
-            action_name=p1,
-            robot_id="robot1",
-            log_success_msg=f"Action run_action({p1}, {p2}) sent to simulator.",
-            log_error_msg=f"Error sending action run_action({p1}, {p2}) to simulator:",
+            action_name=action_name,
+            log_success_msg=f"Action {action_name} sent to simulator.",
+            log_error_msg=f"Error sending action r{action_name} to simulator:",
         )
 
         return self._send_request(
@@ -149,7 +155,7 @@ class ActionExecutor:
             "sleep_time": action["sleep_time"],
         }
         try:
-            self._run_action(action["action"][0], action["action"][1])
+            self._run_action(action_name, action["action"][0], action["action"][1])
             elapsed = 0.0
             while elapsed < action["sleep_time"]:
                 if self._immediate_stop_event.is_set():
@@ -241,7 +247,7 @@ class ActionExecutor:
     def stop(self) -> None:
         """Stop all actions immediately and clear the queue."""
         self.logger.info(
-            "Immediate stop requested: clearing queue and interrupting current action."
+            "Immediate stop requested: clearing queue and intserrupting current action."
         )
         self._immediate_stop_event.set()
         self.clear_action_queue()
@@ -257,7 +263,6 @@ class ActionExecutor:
     def _send_to_simulator(
         self,
         action_name: str,
-        robot_id: str,
         log_success_msg: str = None,
         log_error_msg: str = None,
     ) -> Optional[Dict[str, Any]]:
@@ -277,16 +282,12 @@ class ActionExecutor:
         """
 
         if log_success_msg is None:
-            log_success_msg = (
-                f"Simulator action {action_name} for robot {robot_id} successful."
-            )
+            log_success_msg = f"Simulator action {action_name} for robot {self.robot_name} successful."
         if log_error_msg is None:
-            log_error_msg = (
-                f"Error sending action {action_name} to simulator for robot {robot_id}:"
-            )
+            log_error_msg = f"Error sending action {action_name} to simulator for robot {self.robot_name}:"
 
         # Construct the URL in the format:
-        url = f"https://humanoid-robot-simulator-74gfpibg5q-uc.a.run.app/run_action/{robot_id}?session_key=robotshow"
+        url = f"{self.simulator_endpoint}/run_action/{self.robot_name}?session_key={self.session_key}"
 
         # Prepare the payload in the expected format: {"action": "bow"}
         payload = {"action": action_name}
@@ -301,7 +302,7 @@ class ActionExecutor:
             response.raise_for_status()
             resp_json = response.json()
             self.logger.info(
-                "%s - %s Response: %s", robot_id, log_success_msg, resp_json
+                "%s - %s Response: %s", self.robot_name, log_success_msg, resp_json
             )
             return resp_json
         except requests.exceptions.RequestException as e:
