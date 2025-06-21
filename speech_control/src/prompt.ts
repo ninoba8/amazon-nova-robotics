@@ -2,24 +2,12 @@ import { IoTPublisher } from "./iot";
 import { Actions, toolList } from "./consts";
 
 export class ToolProcessor {
-  // private robots: string[];
   private readonly iotPublisher: IoTPublisher;
 
   constructor() {
     // this.robots = [];
     this.iotPublisher = new IoTPublisher("us-east-1");
   }
-  // setRobots(robots: string[] | string) {
-  //   if (Array.isArray(robots)) {
-  //     this.robots = robots;
-  //   } else {
-  //     this.robots = [robots];
-  //   }
-  // }
-  // getFirstRobot() {
-  //   // For backward compatibility, return the first robot or 'robot_1'
-  //   return this.robots[0] || "robot_1";
-  // }
 
   public async processToolUse(
     robots: string[],
