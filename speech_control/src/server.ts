@@ -3,9 +3,14 @@ import http from "http";
 import path from "path";
 import { Server } from "socket.io";
 import { fromContainerMetadata, fromIni } from "@aws-sdk/credential-providers";
+import cors from "cors";
 import { NovaSonicBidirectionalStreamClient } from "./client";
 import { Buffer } from "node:buffer";
 import getUuid from "uuid-by-string";
+import { ToolHandler } from "./services/tools";
+import { McpManager } from "./services/mcp-manager";
+import { ToolProcessor } from "./prompt";
+import { Actions } from "./consts";
 
 // Configure AWS credentials
 const AWS_PROFILE_NAME = process.env.AWS_PROFILE || "default";
@@ -13,8 +18,71 @@ const isInCloud = process.env.IsInCloud || false;
 
 // Create Express app and HTTP server
 const app = express();
+
+// Enable CORS with specific options
+const corsOptions = {
+  origin: "http://localhost:3001",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "Access-Control-Allow-Origin",
+    "Access-Control-Allow-Headers",
+    "Access-Control-Allow-Methods",
+    "Access-Control-Allow-Credentials",
+  ],
+  exposedHeaders: ["Access-Control-Allow-Origin"],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+
+// Handle OPTIONS preflight requests
+app.options("*", cors(corsOptions));
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:3001",
+    methods: ["GET", "POST", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+  },
+  allowEIO3: true,
+  transports: ["websocket", "polling"],
+});
+
+// Create ToolHandler
+const toolHandler = new ToolHandler();
+
+// Create MCP manager
+const mcpManager = new McpManager(toolHandler);
+
+// Track MCP initialization status
+let mcpInitialized = false;
+
+// Initialize MCP servers asynchronously
+(async () => {
+  try {
+    console.log("Initializing MCP servers...");
+    await mcpManager.initializeServers();
+    mcpInitialized = true;
+    console.log("MCP servers initialization complete");
+  } catch (error) {
+    console.error("Failed to initialize MCP servers:", error);
+    mcpInitialized = true; // Set to true even on error to prevent blocking
+  }
+})();
 
 // Create the AWS Bedrock client
 const bedrockClient = new NovaSonicBidirectionalStreamClient({
@@ -27,6 +95,7 @@ const bedrockClient = new NovaSonicBidirectionalStreamClient({
       ? fromContainerMetadata()
       : fromIni({ profile: AWS_PROFILE_NAME }),
   },
+  toolHandler: toolHandler, // Pass the toolHandler to the client
 });
 
 // Periodically check for and close inactive sessions (every minute)
@@ -67,6 +136,13 @@ io.on("connection", (socket) => {
   const sessionId = getUuid(socket.id);
 
   try {
+    // Check if MCP is initialized before creating session
+    if (!mcpInitialized) {
+      console.warn(
+        `Creating session ${sessionId} before MCP initialization is complete. MCP tools may not be available initially.`
+      );
+    }
+
     // Create session with the new API
     const session = bedrockClient.createStreamSession(sessionId, {
       clientConfig: { region: process.env.AWS_BEDROCK_REGION || "us-east-1" },
@@ -273,6 +349,101 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// MCP management endpoints
+app.get("/api/mcp/status", (req, res) => {
+  try {
+    const status = mcpManager.getServerStatus();
+    const connectedServers = mcpManager.getConnectedServers();
+    const tools = mcpManager.getAllTools();
+
+    res.json({
+      status: "ok",
+      connectedServers,
+      serverStatus: status,
+      toolCount: tools.length,
+      tools: tools.map((tool) => ({
+        name: tool.name,
+        description: tool.description,
+        serverName: tool.serverName,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+app.post("/api/mcp/reload", async (req, res) => {
+  try {
+    await mcpManager.reloadConfiguration();
+    res.json({
+      status: "ok",
+      message: "MCP configuration reloaded successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+app.get("/api/tools", (req, res) => {
+  try {
+    const mcpTools = Array.from(toolHandler.getMcpTools().values());
+    res.json({
+      status: "ok",
+      tools: mcpTools.map((tool) => ({
+        name: tool.serverName,
+        description: tool.description,
+        serverName: tool.serverName,
+        isAutoApproved: tool.isAutoApproved,
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
+// Debug endpoint to check available tools for AI model
+app.get("/api/debug/tools", (req, res) => {
+  try {
+    // Create a temporary tool processor to get available tools
+    const tempToolProcessor = new ToolProcessor(toolHandler);
+    const allTools = tempToolProcessor.getAllAvailableTools();
+
+    res.json({
+      status: "ok",
+      totalTools: allTools.length,
+      robotTools: allTools.filter((t: any) => !t.toolSpec.name.includes("/"))
+        .length,
+      mcpTools: allTools.filter(
+        (t: any) =>
+          t.toolSpec.name.includes("/") ||
+          !Object.keys(Actions).includes(t.toolSpec.name.toLowerCase())
+      ).length,
+      tools: allTools.map((tool: any) => ({
+        name: tool.toolSpec.name,
+        description: tool.toolSpec.description,
+        hasInputSchema: !!tool.toolSpec.inputSchema,
+        type: Object.keys(Actions).includes(tool.toolSpec.name.toLowerCase())
+          ? "robot"
+          : "mcp",
+      })),
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+});
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
@@ -288,10 +459,15 @@ process.on("SIGINT", async () => {
   const forceExitTimer = setTimeout(() => {
     console.error("Forcing server shutdown after timeout");
     process.exit(1);
-  }, 5000);
+  }, 10000); // Increased timeout for MCP cleanup
 
   try {
-    // First close Socket.IO server which manages WebSocket connections
+    // First disconnect from all MCP servers
+    console.log("Disconnecting from MCP servers...");
+    await mcpManager.disconnectFromAllServers();
+    console.log("MCP servers disconnected");
+
+    // Then close Socket.IO server which manages WebSocket connections
     await new Promise((resolve) => io.close(resolve));
     console.log("Socket.IO server closed");
 

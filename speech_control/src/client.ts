@@ -24,6 +24,7 @@ import { StreamSession } from "./streamSession";
 import { InferenceConfig } from "./types";
 import { ToolProcessor, tools } from "./prompt";
 import { Database } from "./database";
+import { ToolHandler } from "./services/tools";
 
 export interface NovaSonicBidirectionalStreamClientConfig {
   requestHandlerConfig?:
@@ -31,6 +32,7 @@ export interface NovaSonicBidirectionalStreamClientConfig {
     | Provider<NodeHttp2HandlerOptions | void>;
   clientConfig: Partial<BedrockRuntimeClientConfig>;
   inferenceConfig?: InferenceConfig;
+  toolHandler?: ToolHandler;
 }
 
 // Types for event handling
@@ -98,7 +100,7 @@ export class NovaSonicBidirectionalStreamClient {
       temperature: 0.3,
     };
 
-    this.toolProcessor = new ToolProcessor();
+    this.toolProcessor = new ToolProcessor(config.toolHandler);
     this.database = new Database();
   }
 
@@ -662,6 +664,13 @@ export class NovaSonicBidirectionalStreamClient {
     const audioConfig = { ...DefaultAudioOutputConfiguration, voiceId };
     console.log(`${robotIdPrompt} using voice ID: ${voiceId}`);
 
+    // Get all available tools (robot actions + MCP tools)
+    const allAvailableTools = this.toolProcessor.getAllAvailableTools();
+    console.log(
+      `Setting up ${allAvailableTools.length} tools for session ${sessionId}:`,
+      allAvailableTools.map((t) => t.toolSpec.name).join(", ")
+    );
+
     // Prompt start event
     this.addEventToSessionQueue(sessionId, {
       event: {
@@ -678,7 +687,7 @@ export class NovaSonicBidirectionalStreamClient {
             any: {},
           },
           toolConfiguration: {
-            tools: tools,
+            tools: allAvailableTools,
           },
         },
       },
@@ -734,6 +743,18 @@ export class NovaSonicBidirectionalStreamClient {
       );
     }
 
+    // Generate dynamic tools list for system prompt
+    const allAvailableTools = this.toolProcessor.getAllAvailableTools();
+    const toolsPrompt = allAvailableTools
+      .map((tool) => `- ${tool.toolSpec.name}: ${tool.toolSpec.description}`)
+      .join("\n");
+
+    // Replace the static tools list with dynamic one
+    systemPrompt = systemPrompt.replace(
+      /Available tools:\n.*$/s,
+      `Available tools:\n${toolsPrompt}`
+    );
+
     console.log(`Using system prompt content: ${systemPrompt}`);
     const sessionDataSys = this.activeSessions.get(sessionId);
     if (!sessionDataSys) return;
@@ -754,6 +775,13 @@ export class NovaSonicBidirectionalStreamClient {
     } else {
       sysPrompt = systemPromptContent.replace("<background></background>", "");
     }
+
+    // Update system prompt with dynamic tools list for the final prompt too
+    sysPrompt = sysPrompt.replace(
+      /Available tools:\n.*$/s,
+      `Available tools:\n${toolsPrompt}`
+    );
+
     console.log(`Using system prompt content: ${sysPrompt}`);
     // Text content start
     const textPromptID = randomUUID();

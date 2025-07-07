@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "github.com/executeautomation/mcp-playwright": {
+      "disabled": false,
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"]
+    },
+    "github.com/modelcontextprotocol/servers/tree/main/src/filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/workspaces/amazon-nova-robotics"
+      ],
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

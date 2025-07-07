@@ -1,12 +1,15 @@
 import { IoTPublisher } from "./iot";
 import { Actions, toolList } from "./consts";
+import { ToolHandler } from "./services/tools";
 
 export class ToolProcessor {
   private readonly iotPublisher: IoTPublisher;
+  private readonly mcpToolHandler: ToolHandler;
 
-  constructor() {
+  constructor(mcpToolHandler?: ToolHandler) {
     // this.robots = [];
     this.iotPublisher = new IoTPublisher("us-east-1");
+    this.mcpToolHandler = mcpToolHandler || new ToolHandler();
   }
 
   public async processToolUse(
@@ -18,12 +21,37 @@ export class ToolProcessor {
     console.log(`Processing tool use: ${toolName}`);
     console.log(`Tool use content:`, toolUseContent);
 
-    if (!Object.keys(Actions).includes(toolName.toLocaleLowerCase())) {
-      // throw new Error(`Invalid tool name: ${toolName}`);
-      return {
-        success: true,
-        message: `Tool ${toolName} is not in action list but assume ok!`,
-      };
+    // First, check if it's an MCP tool
+    try {
+      const mcpResult: any = await this.mcpToolHandler.processToolUse(
+        toolName,
+        toolUseContent
+      );
+      if (mcpResult && mcpResult.success !== false) {
+        console.log(`Successfully processed MCP tool: ${toolName}`);
+        return mcpResult;
+      }
+    } catch (error) {
+      console.log(
+        `Tool ${toolName} not found in MCP tools, trying robot actions...`
+      );
+    }
+
+    // If not an MCP tool, handle as robot action
+    if (!Object.keys(Actions).includes(toolName.toLowerCase())) {
+      // Try MCP tool handler first
+      try {
+        return await this.mcpToolHandler.processToolUse(
+          toolName,
+          toolUseContent
+        );
+      } catch (error) {
+        console.log(`Tool ${toolName} not found in MCP tools or robot actions`);
+        return {
+          success: true,
+          message: `Tool ${toolName} is not in action list but assume ok!`,
+        };
+      }
     }
 
     console.log("Processing directionTool with toolName:", toolName);
@@ -46,6 +74,39 @@ export class ToolProcessor {
       success: true,
       message: `Tool ${toolName} processed successfully.`,
     };
+  }
+
+  /**
+   * Get all available tools (robot actions + MCP tools)
+   */
+  public getAllAvailableTools(): any[] {
+    const robotTools = tools;
+    const mcpTools = Array.from(this.mcpToolHandler.getMcpTools().values()).map(
+      (toolInfo) => ({
+        toolSpec: {
+          name: toolInfo.toolName,
+          description: toolInfo.description,
+          inputSchema: { json: JSON.stringify(toolInfo.inputSchema || {}) },
+        },
+      })
+    );
+
+    console.log(
+      `Available tools: ${robotTools.length} robot tools, ${mcpTools.length} MCP tools`
+    );
+    if (mcpTools.length > 0) {
+      console.log(
+        `MCP tools: ${mcpTools.map((t) => t.toolSpec.name).join(", ")}`
+      );
+    }
+    return [...robotTools, ...mcpTools];
+  }
+
+  /**
+   * Get MCP tool handler
+   */
+  public getMcpToolHandler(): ToolHandler {
+    return this.mcpToolHandler;
   }
 }
 
