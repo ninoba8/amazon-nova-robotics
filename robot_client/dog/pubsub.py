@@ -7,7 +7,7 @@ import threading
 from concurrent.futures import Future
 
 import yaml
-from action_executor import ActionExecutor
+from action_executor_ros import ActionExecutor
 from awscrt import http, mqtt5, io, auth
 from awsiot import mqtt5_client_builder
 import os

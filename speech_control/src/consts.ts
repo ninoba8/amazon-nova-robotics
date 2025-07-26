@@ -28,181 +28,89 @@ export const DefaultAudioOutputConfiguration = {
 export const Actions: {
   [key: string]: { sleep_time: number; action: string[]; name: string };
 } = {
+  // 基础移动
   back_fast: { sleep_time: 4.5, action: ["2", "4"], name: "back_fast" },
-  bow: { sleep_time: 4, action: ["10", "1"], name: "bow" },
-  chest: { sleep_time: 9, action: ["12", "1"], name: "chest" },
-  dance_eight: { sleep_time: 85, action: ["42", "1"], name: "dance_eight" },
-  dance_five: { sleep_time: 59, action: ["39", "1"], name: "dance_five" },
-  dance_four: { sleep_time: 59, action: ["38", "1"], name: "dance_four" },
-  dance_nine: { sleep_time: 84, action: ["43", "1"], name: "dance_nine" },
-  dance_seven: { sleep_time: 67, action: ["41", "1"], name: "dance_seven" },
-  dance_six: { sleep_time: 69, action: ["40", "1"], name: "dance_six" },
-  dance_ten: { sleep_time: 85, action: ["44", "1"], name: "dance_ten" },
-  dance_three: { sleep_time: 70, action: ["37", "1"], name: "dance_three" },
-  dance_two: { sleep_time: 52, action: ["36", "1"], name: "dance_two" },
   go_forward: { sleep_time: 3.5, action: ["1", "4"], name: "go_forward" },
-  kung_fu: { sleep_time: 2, action: ["46", "2"], name: "kung_fu" },
-  left_kick: { sleep_time: 2, action: ["18", "1"], name: "left_kick" },
   left_move_fast: { sleep_time: 3, action: ["3", "4"], name: "left_move_fast" },
-  left_shot_fast: {
-    sleep_time: 4,
-    action: ["13", "1"],
-    name: "left_shot_fast",
-  },
-  left_uppercut: { sleep_time: 2, action: ["16", "1"], name: "left_uppercut" },
-  push_ups: { sleep_time: 9, action: ["5", "1"], name: "push_ups" },
-  right_kick: { sleep_time: 2, action: ["19", "1"], name: "right_kick" },
-  right_move_fast: {
-    sleep_time: 3,
-    action: ["4", "4"],
-    name: "right_move_fast",
-  },
-  right_shot_fast: {
-    sleep_time: 4,
-    action: ["14", "1"],
-    name: "right_shot_fast",
-  },
-  right_uppercut: {
-    sleep_time: 2,
-    action: ["17", "1"],
-    name: "right_uppercut",
-  },
-  sit_ups: { sleep_time: 12, action: ["6", "1"], name: "sit_ups" },
-  squat: { sleep_time: 1, action: ["11", "1"], name: "squat" },
-  squat_up: { sleep_time: 6, action: ["45", "1"], name: "squat_up" },
-  stand: { sleep_time: 1, action: ["0", "1"], name: "站立" },
-  stand_up_back: { sleep_time: 5, action: ["21", "1"], name: "stand_up_back" },
-  stand_up_front: {
-    sleep_time: 5,
-    action: ["20", "1"],
-    name: "stand_up_front",
-  },
-  stepping: { sleep_time: 3, action: ["24", "2"], name: "stepping" },
-  stop: { sleep_time: 3, action: ["24", "2"], name: "stop" },
+  right_move_fast: { sleep_time: 3, action: ["4", "4"], name: "right_move_fast" },
   turn_left: { sleep_time: 4, action: ["7", "4"], name: "turn_left" },
   turn_right: { sleep_time: 4, action: ["8", "4"], name: "turn_right" },
-  twist: { sleep_time: 4, action: ["22", "1"], name: "twist" },
-  wave: { sleep_time: 3.5, action: ["9", "1"], name: "wave" },
-  weightlifting: { sleep_time: 9, action: ["35", "1"], name: "weightlifting" },
-  wing_chun: { sleep_time: 2, action: ["15", "1"], name: "wing_chun" },
+  stop: { sleep_time: 1, action: ["24", "2"], name: "stop" },
+  
+  // 姿态动作
+  stand: { sleep_time: 2, action: ["stand"], name: "stand" },
+  sit: { sleep_time: 2, action: ["sit"], name: "sit" },
+  lie_down: { sleep_time: 3, action: ["lie_down"], name: "lie_down" },
+  "2_legs_stand": { sleep_time: 3, action: ["2_legs_stand"], name: "2_legs_stand" },
+  look_down: { sleep_time: 2, action: ["look_down"], name: "look_down" },
+  
+  // 互动动作
+  bow: { sleep_time: 4, action: ["bow"], name: "bow" },
+  wave: { sleep_time: 3.5, action: ["wave"], name: "wave" },
+  shake_hands: { sleep_time: 4, action: ["shake_hands"], name: "shake_hands" },
+  nod: { sleep_time: 2, action: ["nod"], name: "nod" },
+  shake_head: { sleep_time: 2, action: ["shake_head"], name: "shake_head" },
+  
+  // 运动动作
+  boxing: { sleep_time: 5, action: ["boxing"], name: "boxing" },
+  boxing2: { sleep_time: 5, action: ["boxing2"], name: "boxing2" },
+  push_ups: { sleep_time: 8, action: ["push-up"], name: "push_ups" },
+  push_up: { sleep_time: 8, action: ["push-up"], name: "push_up" },
+  "press_up": { sleep_time: 8, action: ["press-up"], name: "press_up" },
+  moonwalk: { sleep_time: 6, action: ["moonwalk"], name: "moonwalk" },
+  spacewalk: { sleep_time: 6, action: ["spacewalk"], name: "spacewalk" },
+  jump: { sleep_time: 3, action: ["jump"], name: "jump" },
+  stretch: { sleep_time: 5, action: ["stretch"], name: "stretch" },
+  pee: { sleep_time: 4, action: ["pee"], name: "pee" },
+  demo: { sleep_time: 10, action: ["demo"], name: "demo" },
+  
+  // 特殊动作
+  "up_stairs_3_5cm": { sleep_time: 5, action: ["up_stairs_3.5cm"], name: "up_stairs_3_5cm" },
+  kick_ball_left: { sleep_time: 3, action: ["kick_ball_left"], name: "kick_ball_left" },
+  kick_ball_right: { sleep_time: 3, action: ["kick_ball_right"], name: "kick_ball_right" },
+  Clamping: { sleep_time: 3, action: ["Clamping"], name: "Clamping" },
 };
 
 export const toolList = [
-  {
-    name: "back_fast",
-    description: "Command the robot to move backward quickly.",
-  },
-  { name: "bow", description: "Command the robot to bow." },
-  {
-    name: "chest",
-    description: "Command the robot to perform chest exercises.",
-  },
-  {
-    name: "dance_eight",
-    description: "Command the robot to perform dance eight.",
-  },
-  {
-    name: "dance_five",
-    description: "Command the robot to perform dance five.",
-  },
-  {
-    name: "dance_four",
-    description: "Command the robot to perform dance four.",
-  },
-  {
-    name: "dance_nine",
-    description: "Command the robot to perform dance nine.",
-  },
-  {
-    name: "dance_seven",
-    description: "Command the robot to perform dance seven.",
-  },
-  { name: "dance_six", description: "Command the robot to perform dance six." },
-  { name: "dance_ten", description: "Command the robot to perform dance ten." },
-  {
-    name: "dance_three",
-    description: "Command the robot to perform dance three.",
-  },
-  { name: "dance_two", description: "Command the robot to perform dance two." },
-  {
-    name: "go_forward",
-    description:
-      "Command the robot to move forward in the direction it is currently facing.",
-  },
-  {
-    name: "kung_fu",
-    description: "Command the robot to perform kung fu moves.",
-  },
-  {
-    name: "left_kick",
-    description: "Command the robot to perform a left kick.",
-  },
-  {
-    name: "left_move_fast",
-    description: "Command the robot to move left quickly.",
-  },
-  {
-    name: "left_shot_fast",
-    description: "Command the robot to perform a fast left punch.",
-  },
-  {
-    name: "left_uppercut",
-    description: "Command the robot to perform a left uppercut.",
-  },
-  { name: "push_ups", description: "Command the robot to perform push-ups." },
-  {
-    name: "right_kick",
-    description: "Command the robot to perform a right kick.",
-  },
-  {
-    name: "right_move_fast",
-    description: "Command the robot to move right quickly.",
-  },
-  {
-    name: "right_shot_fast",
-    description: "Command the robot to perform a fast right punch.",
-  },
-  {
-    name: "right_uppercut",
-    description: "Command the robot to perform a right uppercut.",
-  },
-  { name: "sit_ups", description: "Command the robot to perform sit-ups." },
-  { name: "squat", description: "Command the robot to squat down." },
-  {
-    name: "squat_up",
-    description: "Command the robot to stand up from a squat.",
-  },
-  {
-    name: "stand",
-    description:
-      "Command the robot to stand up and maintain a standing position.",
-  },
-  {
-    name: "stand_up_back",
-    description: "Command the robot to stand up from the back.",
-  },
-  {
-    name: "stand_up_front",
-    description: "Command the robot to stand up from the front.",
-  },
-  {
-    name: "stepping",
-    description: "Command the robot to perform stepping motions.",
-  },
-  {
-    name: "stop",
-    description: "Command the robot to perform stepping motions.",
-  },
+  // 基础移动
+  { name: "back_fast", description: "Command the robot to move backward quickly." },
+  { name: "go_forward", description: "Command the robot to move forward." },
+  { name: "left_move_fast", description: "Command the robot to move left quickly." },
+  { name: "right_move_fast", description: "Command the robot to move right quickly." },
   { name: "turn_left", description: "Command the robot to turn left." },
   { name: "turn_right", description: "Command the robot to turn right." },
-  { name: "twist", description: "Command the robot to twist its body." },
-  { name: "wave", description: "Command the robot to wave its hand." },
-  {
-    name: "weightlifting",
-    description: "Command the robot to perform weightlifting.",
-  },
-  {
-    name: "wing_chun",
-    description: "Command the robot to perform Wing Chun moves.",
-  },
+  { name: "stop", description: "Command the robot to stop moving." },
+  
+  // 姿态动作
+  { name: "stand", description: "Command the robot to stand up." },
+  { name: "sit", description: "Command the robot to sit down." },
+  { name: "lie_down", description: "Command the robot to lie down." },
+  { name: "2_legs_stand", description: "Command the robot to stand on two legs." },
+  { name: "look_down", description: "Command the robot to look down." },
+  
+  // 互动动作
+  { name: "bow", description: "Command the robot to bow." },
+  { name: "wave", description: "Command the robot to wave." },
+  { name: "shake_hands", description: "Command the robot to shake hands." },
+  { name: "nod", description: "Command the robot to nod its head." },
+  { name: "shake_head", description: "Command the robot to shake its head." },
+  
+  // 运动动作
+  { name: "boxing", description: "Command the robot to perform boxing moves." },
+  { name: "boxing2", description: "Command the robot to perform boxing moves (variant 2)." },
+  { name: "push_ups", description: "Command the robot to do push-ups." },
+  { name: "push_up", description: "Command the robot to do a push-up." },
+  { name: "press_up", description: "Command the robot to do press-ups." },
+  { name: "moonwalk", description: "Command the robot to perform moonwalk dance." },
+  { name: "spacewalk", description: "Command the robot to perform spacewalk dance." },
+  { name: "jump", description: "Command the robot to jump." },
+  { name: "stretch", description: "Command the robot to stretch." },
+  { name: "pee", description: "Command the robot to perform pee action." },
+  { name: "demo", description: "Command the robot to perform demo sequence." },
+  
+  // 特殊动作
+  { name: "up_stairs_3_5cm", description: "Command the robot to go up 3.5cm stairs." },
+  { name: "kick_ball_left", description: "Command the robot to kick ball with left leg." },
+  { name: "kick_ball_right", description: "Command the robot to kick ball with right leg." },
+  { name: "Clamping", description: "Command the robot to perform clamping action." },
 ];

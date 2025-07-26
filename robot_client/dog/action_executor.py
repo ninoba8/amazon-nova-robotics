@@ -2,10 +2,14 @@ import logging
 import queue
 import threading
 import time
+import math
 from typing import Any, Dict, Optional
 from uuid import uuid4
 
-import requests
+import rclpy
+from rclpy.node import Node
+from std_srvs.srv import SetBool
+from puppy_control_msgs.msg import Velocity, Pose, Gait
 
 logger = logging.getLogger(__name__)
 
@@ -85,26 +89,43 @@ class ActionExecutor:
         self._immediate_stop_event = threading.Event()
         self.queue_lock = threading.Lock()
         self._stop_event = threading.Event()
+        
+        # 初始化ROS2
+        rclpy.init()
+        self.node = Node('puppy_action_executor')
+        
+        # 创建ROS2发布者
+        self.pose_pub = self.node.create_publisher(Pose, '/puppy_control/pose', 10)
+        self.gait_pub = self.node.create_publisher(Gait, '/puppy_control/gait', 10)
+        self.velocity_pub = self.node.create_publisher(Velocity, '/puppy_control/velocity', 10)
+        
+        # 创建服务客户端
+        self.set_mark_time_client = self.node.create_client(SetBool, '/puppy_control/set_mark_time')
+        
         self.consumer_thread = threading.Thread(target=self._consumer, daemon=True)
         self.consumer_thread.start()
+        
+        # ROS2 spin线程
+        self.ros_thread = threading.Thread(target=self._ros_spin, daemon=True)
+        self.ros_thread.start()
 
     def _run_action(self, p1: str, p2: str) -> Optional[Dict[str, Any]]:
-        """Send a request to execute an action."""
-        return self._send_request(
-            method="RunAction",
-            params=[p1, p2],
-            log_success_msg=f"Action run_action({p1}, {p2}) successful.",
-            log_error_msg=f"Error running action run_action({p1}, {p2}):",
-        )
+        """Execute action using ROS2."""
+        try:
+            self._execute_ros_action(p1)
+            return {"result": "success"}
+        except Exception as e:
+            self.logger.error(f"Error running action: {e}")
+            return None
 
     def _run_stop_action(self) -> Optional[Dict[str, Any]]:
-        """Send a request to stop the current action group."""
-        return self._send_request(
-            method="StopActionGroup",
-            params=None,
-            log_success_msg="Action run_stop_action() successful.",
-            log_error_msg="Error running action run_stop_action():",
-        )
+        """Stop current action using ROS2."""
+        try:
+            self._publish_velocity(0.0, 0.0, 0.0)
+            return {"result": "success"}
+        except Exception as e:
+            self.logger.error(f"Error stopping action: {e}")
+            return None
 
     def _send_request(
         self,
