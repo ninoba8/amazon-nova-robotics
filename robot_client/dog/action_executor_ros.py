@@ -19,17 +19,13 @@ actions: Dict[str, Dict[str, Any]] = {
     # 基础移动
     "back_fast": {"sleep_time": 4.5, "action": ["2", "4"], "name": "back_fast", "type": "velocity"},
     "go_forward": {"sleep_time": 3.5, "action": ["1", "4"], "name": "go_forward", "type": "velocity"},
-    "left_move_fast": {"sleep_time": 3, "action": ["3", "4"], "name": "left_move_fast", "type": "velocity"},
-    "right_move_fast": {"sleep_time": 3, "action": ["4", "4"], "name": "right_move_fast", "type": "velocity"},
-    "turn_left": {"sleep_time": 4, "action": ["7", "4"], "name": "turn_left", "type": "velocity"},
-    "turn_right": {"sleep_time": 4, "action": ["8", "4"], "name": "turn_right", "type": "velocity"},
     "stop": {"sleep_time": 1, "action": ["24", "2"], "name": "stop", "type": "velocity"},
     
     # 姿态动作
     "stand": {"sleep_time": 2, "action": ["stand"], "name": "stand", "type": "action"},
     "sit": {"sleep_time": 2, "action": ["sit"], "name": "sit", "type": "action"},
     "lie_down": {"sleep_time": 3, "action": ["lie_down"], "name": "lie_down", "type": "action"},
-    "2_legs_stand": {"sleep_time": 3, "action": ["2_legs_stand"], "name": "2_legs_stand", "type": "action"},
+
     "look_down": {"sleep_time": 2, "action": ["look_down"], "name": "look_down", "type": "action"},
     
     # 互动动作
@@ -42,9 +38,6 @@ actions: Dict[str, Dict[str, Any]] = {
     # 运动动作
     "boxing": {"sleep_time": 5, "action": ["boxing"], "name": "boxing", "type": "action"},
     "boxing2": {"sleep_time": 5, "action": ["boxing2"], "name": "boxing2", "type": "action"},
-    "push_ups": {"sleep_time": 8, "action": ["push-up"], "name": "push_ups", "type": "action"},
-    "push_up": {"sleep_time": 8, "action": ["push-up"], "name": "push_up", "type": "action"},
-    "press_up": {"sleep_time": 8, "action": ["press-up"], "name": "press_up", "type": "action"},
     "moonwalk": {"sleep_time": 6, "action": ["moonwalk"], "name": "moonwalk", "type": "action"},
     "spacewalk": {"sleep_time": 6, "action": ["spacewalk"], "name": "spacewalk", "type": "action"},
     "jump": {"sleep_time": 3, "action": ["jump"], "name": "jump", "type": "action"},
@@ -53,10 +46,9 @@ actions: Dict[str, Dict[str, Any]] = {
     "demo": {"sleep_time": 10, "action": ["demo"], "name": "demo", "type": "action"},
     
     # 特殊动作
-    "up_stairs_3_5cm": {"sleep_time": 5, "action": ["up_stairs_3.5cm"], "name": "up_stairs_3_5cm", "type": "action"},
+
     "kick_ball_left": {"sleep_time": 3, "action": ["kick_ball_left"], "name": "kick_ball_left", "type": "action"},
     "kick_ball_right": {"sleep_time": 3, "action": ["kick_ball_right"], "name": "kick_ball_right", "type": "action"},
-    "Clamping": {"sleep_time": 3, "action": ["Clamping"], "name": "Clamping", "type": "action"},
 }
 
 idle_action: Dict[str, Any] = {"name": None, "sleep_time": 0}
@@ -112,23 +104,13 @@ class ActionExecutor:
             self._publish_velocity(5.0, 0.0, 0.0)
         elif action_name == "back_fast":
             self._publish_velocity(-5.0, 0.0, 0.0)
-        elif action_name == "left_move_fast":
-            self._publish_velocity(0.0, 5.0, 0.0)
-        elif action_name == "right_move_fast":
-            self._publish_velocity(0.0, -5.0, 0.0)
-        elif action_name == "turn_left":
-            self._publish_velocity(0.0, 0.0, 1.0)
-        elif action_name == "turn_right":
-            self._publish_velocity(0.0, 0.0, -1.0)
         elif action_name == "stop":
             self._publish_velocity(0.0, 0.0, 0.0)
     
     def _execute_predefined_action(self, action_name: str):
         request = SetRunActionName.Request()
         # 处理特殊文件名
-        if action_name == "Clamping":
-            request.name = "Clamping.d6a"
-        elif action_name == "look_down":
+        if action_name == "look_down":
             request.name = "look_down.d6a"
         else:
             request.name = f'{action_name}.d6ac'

@@ -76,10 +76,10 @@ export class NovaSonicBidirectionalStreamClient {
 
   constructor(config: NovaSonicBidirectionalStreamClientConfig) {
     const nodeHttp2Handler = new NodeHttp2Handler({
-      requestTimeout: 300000,
-      sessionTimeout: 300000,
+      requestTimeout: 600000, // Increased to 10 minutes
+      sessionTimeout: 600000, // Increased to 10 minutes
       disableConcurrentStreams: false,
-      maxConcurrentStreams: 20,
+      maxConcurrentStreams: 5, // Reduced for stability
       ...config.requestHandlerConfig,
     });
 
@@ -175,38 +175,61 @@ export class NovaSonicBidirectionalStreamClient {
       throw new Error(`Stream session ${sessionId} not found`);
     }
 
-    try {
-      // Set up initial events for this session
-      this.setupSessionStartEvent(sessionId);
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Set up initial events for this session
+        this.setupSessionStartEvent(sessionId);
 
-      // Create the bidirectional stream with session-specific async iterator
-      const asyncIterable = this.createSessionAsyncIterable(sessionId);
+        // Create the bidirectional stream with session-specific async iterator
+        const asyncIterable = this.createSessionAsyncIterable(sessionId);
 
-      console.log(`Starting bidirectional stream for session ${sessionId}...`);
+        console.log(`Starting bidirectional stream for session ${sessionId} (attempt ${retryCount + 1})...`);
 
-      const response = await this.bedrockRuntimeClient.send(
-        new InvokeModelWithBidirectionalStreamCommand({
-          modelId: "amazon.nova-sonic-v1:0",
-          body: asyncIterable,
-        })
-      );
+        const response = await Promise.race([
+          this.bedrockRuntimeClient.send(
+            new InvokeModelWithBidirectionalStreamCommand({
+              modelId: "amazon.nova-sonic-v1:0",
+              body: asyncIterable,
+            })
+          ),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Stream initialization timeout')), 30000)
+          )
+        ]);
 
-      console.log(
-        `Stream established for session ${sessionId}, processing responses...`
-      );
+        console.log(
+          `Stream established for session ${sessionId}, processing responses...`
+        );
 
-      // Process responses for this session
-      await this.processResponseStream(sessionId, response);
-    } catch (error) {
-      console.error(`Error in session ${sessionId}: `, error);
-      this.dispatchEventForSession(sessionId, "error", {
-        source: "bidirectionalStream",
-        error,
-      });
+        // Process responses for this session
+        await this.processResponseStream(sessionId, response);
+        return; // Success, exit retry loop
+        
+      } catch (error) {
+        retryCount++;
+        console.error(`Error in session ${sessionId} (attempt ${retryCount}): `, error);
+        
+        if (retryCount >= maxRetries) {
+          this.dispatchEventForSession(sessionId, "error", {
+            source: "bidirectionalStream",
+            error,
+            retryCount,
+          });
 
-      // Make sure to clean up if there's an error
-      if (session.isActive) {
-        this.closeSession(sessionId);
+          // Make sure to clean up if there's an error
+          if (session.isActive) {
+            this.closeSession(sessionId);
+          }
+          throw error;
+        }
+        
+        // Wait before retry with exponential backoff
+        const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 5000);
+        console.log(`Retrying session ${sessionId} in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
   }
@@ -415,28 +438,48 @@ export class NovaSonicBidirectionalStreamClient {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
+    let lastActivityTime = Date.now();
+    const activityTimeout = 60000; // 1 minute timeout
+    
     try {
-      for await (const event of response.body) {
-        if (!session.isActive) {
-          console.log(
-            `Session ${sessionId} is no longer active, stopping response processing`
-          );
-          break;
-        }
+      const timeoutPromise = new Promise((_, reject) => {
+        const checkTimeout = () => {
+          if (Date.now() - lastActivityTime > activityTimeout) {
+            reject(new Error('Stream activity timeout'));
+          } else if (session.isActive) {
+            setTimeout(checkTimeout, 5000); // Check every 5 seconds
+          }
+        };
+        setTimeout(checkTimeout, 5000);
+      });
+      
+      const streamPromise = (async () => {
+        for await (const event of response.body) {
+          lastActivityTime = Date.now();
+          
+          if (!session.isActive) {
+            console.log(
+              `Session ${sessionId} is no longer active, stopping response processing`
+            );
+            break;
+          }
 
-        if (event.chunk?.bytes) {
-          await this.processResponseChunk(
-            sessionId,
-            session,
-            event.chunk.bytes
-          );
-        } else if (
-          event.modelStreamErrorException ||
-          event.internalServerException
-        ) {
-          this.handleStreamException(sessionId, event);
+          if (event.chunk?.bytes) {
+            await this.processResponseChunk(
+              sessionId,
+              session,
+              event.chunk.bytes
+            );
+          } else if (
+            event.modelStreamErrorException ||
+            event.internalServerException
+          ) {
+            this.handleStreamException(sessionId, event);
+          }
         }
-      }
+      })();
+      
+      await Promise.race([streamPromise, timeoutPromise]);
 
       console.log(
         `Response stream processing complete for session ${sessionId}`
@@ -449,11 +492,33 @@ export class NovaSonicBidirectionalStreamClient {
         `Error processing response stream for session ${sessionId}: `,
         error
       );
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        if (error.message.includes('timeout')) {
+          this.dispatchEvent(sessionId, "timeout", {
+            source: "responseStream",
+            message: "Stream timeout detected",
+          });
+        } else if (error.message.includes('ValidationException')) {
+          this.dispatchEvent(sessionId, "validationError", {
+            source: "responseStream",
+            message: "Validation error from Bedrock",
+            details: error.message,
+          });
+        }
+      }
+      
       this.dispatchEvent(sessionId, "error", {
         source: "responseStream",
         message: "Error processing response stream",
         details: error instanceof Error ? error.message : String(error),
       });
+      
+      // Force cleanup on stream errors
+      if (session.isActive) {
+        this.forceCloseSession(sessionId);
+      }
     }
   }
 
@@ -494,7 +559,10 @@ export class NovaSonicBidirectionalStreamClient {
       this.dispatchEvent(sessionId, "error", {
         type: "modelStreamErrorException",
         details: event.modelStreamErrorException,
+        recoverable: false,
       });
+      // Force close session on model errors
+      this.forceCloseSession(sessionId);
     } else if (event.internalServerException) {
       console.error(
         `Internal server error for session ${sessionId}: `,
@@ -503,6 +571,7 @@ export class NovaSonicBidirectionalStreamClient {
       this.dispatchEvent(sessionId, "error", {
         type: "internalServerException",
         details: event.internalServerException,
+        recoverable: true, // Internal errors might be temporary
       });
     }
   }
@@ -649,18 +718,9 @@ export class NovaSonicBidirectionalStreamClient {
       (sessionDataPrompt as any).robots.length > 0
         ? (sessionDataPrompt as any).robots[0]
         : "robot_1";
-    // Determine voiceId based on robotId
+    // Determine voiceId based on robotId - using matthew (male voice) for all
     let voiceId = "matthew";
-    if (robotIdPrompt) {
-      if (robotIdPrompt === "all") {
-        voiceId = "tiffany";
-      } else {
-        const lastChar = robotIdPrompt.slice(-1);
-        if (!isNaN(Number(lastChar)) && Number(lastChar) % 2 === 1) {
-          voiceId = "tiffany";
-        }
-      }
-    }
+    // All robots now use matthew (male voice) instead of tiffany (female voice)
     const audioConfig = { ...DefaultAudioOutputConfiguration, voiceId };
     console.log(`${robotIdPrompt} using voice ID: ${voiceId}`);
 

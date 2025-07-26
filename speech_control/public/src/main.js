@@ -295,7 +295,7 @@ function updateChatUI() {
 
             const roleLabel = document.createElement('div');
             roleLabel.className = 'role-label';
-            roleLabel.textContent = item.role;
+            roleLabel.textContent = item.role === 'ASSISTANT' ? 'PUPPY' : item.role;
             messageDiv.appendChild(roleLabel);
 
             const content = document.createElement('div');
@@ -361,7 +361,7 @@ function showAssistantThinkingIndicator() {
 
     const roleLabel = document.createElement('div');
     roleLabel.className = 'role-label';
-    roleLabel.textContent = 'ASSISTANT';
+    roleLabel.textContent = 'PUPPY';
     assistantThinkingIndicator.appendChild(roleLabel);
 
     const thinkingText = document.createElement('div');
